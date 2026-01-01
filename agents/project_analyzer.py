@@ -1,122 +1,107 @@
-# src/agents/agent_manager.py (ajouts et modifications)
-import os
-import re
-from pathlib import Path
-from typing import Dict, Any, List
-
-# Ajouter l'import
+# src/project_analyzer.py
 import logging
+from pathlib import Path
+from typing import List, Dict, Any
 
-from config.file_scanner import FileScanner
+from models.code_chunk import CodeChunk
+from models.project_structure import ProjectStructure
+from parsers.utils.Util import infer_language_from_path, infer_category_from_type
 
 logger = logging.getLogger(__name__)
 
+
 class ProjectAnalyzer:
-    """Analyseur de projet qui utilise FileScanner"""
+    """
+    Analyse la structure d'un projet et produit :
+    - ProjectStructure : arborescence, patterns, statistiques
+    - Liste de CodeChunk pour chaque fichier analysé
+    """
 
     def __init__(self, config: Dict[str, Any]):
         self.config = config
-        self.project_config = config.get('project', {})
+        self.root_path = Path(config.get("project_root", "."))
+        self.chunks: List[CodeChunk] = []
 
-    def analyze_project_structure(self) -> Dict[str, Any]:
-        """Analyse la structure du projet"""
-        logger.info("📁 Analyse de la structure du projet...")
+    def analyze_project_structure(self) -> ProjectStructure:
+        """
+        Analyse la structure du projet et retourne un objet ProjectStructure typé
+        """
+        logger.info(f"🔍 Analyse de la structure du projet: {self.root_path}")
 
-        # Initialiser le scanner
-        scanner = FileScanner(self.project_config)
+        files = self._collect_files(self.root_path)
+        patterns = self._infer_patterns(files)
 
-        # Collecter les fichiers
-        files_by_extension = {}
-        total_files = 0
-        total_size = 0
+        project_structure = ProjectStructure(
+            name=self.root_path.name,
+            root_path=str(self.root_path),
+            files=files,
+            patterns=patterns
+        )
 
-        for file_info in scanner.scan_project():
-            total_files += 1
-            total_size += file_info.get('size', 0)
+        # Extraire les chunks pour chaque fichier
+        for file_path in files:
+            file_chunks = self._extract_chunks(file_path)
+            self.chunks.extend(file_chunks)
 
-            extension = file_info['extension']
-            if extension not in files_by_extension:
-                files_by_extension[extension] = []
-            files_by_extension[extension].append(file_info)
+        logger.info(f"✅ Structure projet analysée : {len(files)} fichiers, {len(self.chunks)} chunks extraits")
+        return project_structure
 
-        # Analyser la structure des répertoires
-        directory_structure = self._analyze_directory_structure(scanner)
+    def _collect_files(self, path: Path) -> List[str]:
+        """
+        Récupère tous les fichiers pertinents du projet
+        """
+        exts = self.config.get("file_extensions", [".py", ".js", ".ts", ".java", ".vue"])
+        files = [str(f) for f in path.rglob("*") if f.suffix in exts and f.is_file()]
+        logger.debug(f"📂 Fichiers collectés : {len(files)}")
+        return files
 
-        # Identifier les patterns de fichiers
-        file_patterns = self._identify_file_patterns(files_by_extension)
+    def _infer_patterns(self, files: List[str]) -> Dict[str, Any]:
+        """
+        Déduit des patterns dans le projet (par exemple structure MVC, services, composants)
+        """
+        patterns = {}
+        for file_path in files:
+            fname = Path(file_path).name.lower()
+            if "controller" in fname:
+                patterns[file_path] = "controller"
+            elif "service" in fname:
+                patterns[file_path] = "service"
+            elif "repository" in fname:
+                patterns[file_path] = "repository"
+            elif "component" in fname:
+                patterns[file_path] = "component"
+            else:
+                patterns[file_path] = "business_logic"
+        logger.debug(f"🧩 Patterns déduits : {len(patterns)}")
+        return patterns
 
-        return {
-            'total_files': total_files,
-            'total_size_bytes': total_size,
-            'total_size_mb': round(total_size / (1024 * 1024), 2),
-            'files_by_extension': files_by_extension,
-            'directory_structure': directory_structure,
-            'file_patterns': file_patterns,
-            'extensions_found': list(files_by_extension.keys()),
-            'file_count_by_extension': {ext: len(files) for ext, files in files_by_extension.items()}
-        }
+    def _extract_chunks(self, file_path: str) -> List[CodeChunk]:
+        """
+        Transforme le fichier en chunks de code typés
+        """
+        chunks: List[CodeChunk] = []
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                content = f.read()
 
-    def _analyze_directory_structure(self, scanner: FileScanner) -> Dict[str, Any]:
-        """Analyse la structure des répertoires"""
-        root_dir = self.project_config.get('root_directory', '.')
+            # Pour simplifier, on découpe par lignes ou blocs (à adapter)
+            raw_chunks = content.split("\n\n")
+            for i, block in enumerate(raw_chunks):
+                chunk = CodeChunk(
+                    content=block,
+                    file_path=file_path,
+                    filename=Path(file_path).name,
+                    language=infer_language_from_path(file_path),
+                    category=infer_category_from_type("", file_path),
+                    chunk_type="code_block"
+                )
+                chunks.append(chunk)
 
-        # Utiliser os.walk pour analyser la structure
-        dir_structure = {}
+        except Exception as e:
+            logger.warning(f"⚠️ Impossible d'extraire chunks de {file_path}: {e}")
 
-        for root, dirs, files in os.walk(root_dir):
-            relative_root = os.path.relpath(root, root_dir)
-            if relative_root == '.':
-                relative_root = '/'
+        return chunks
 
-            # Compter les fichiers par type
-            file_types = {}
-            for file in files:
-                ext = Path(file).suffix.lower()
-                file_types[ext] = file_types.get(ext, 0) + 1
-
-            dir_structure[relative_root] = {
-                'subdirectories': dirs,
-                'files_count': len(files),
-                'file_types': file_types,
-                'has_source_code': any(ext in ['.java', '.js', '.py', '.ts'] for ext in file_types.keys())
-            }
-
-        return dir_structure
-
-    def _identify_file_patterns(self, files_by_extension: Dict[str, List[Dict]]) -> Dict[str, Any]:
-        """Identifie les patterns de fichiers"""
-        patterns = {
-            'controllers': [],
-            'services': [],
-            'repositories': [],
-            'models': [],
-            'tests': [],
-            'configs': [],
-            'utils': []
-        }
-
-        # Patterns pour chaque type
-        pattern_mappings = {
-            'controllers': [r'.*controller\.', r'.*ctrl\.', r'.*handler\.'],
-            'services': [r'.*service\.', r'.*manager\.', r'.*processor\.'],
-            'repositories': [r'.*repository\.', r'.*dao\.', r'.*dataaccess\.'],
-            'models': [r'.*model\.', r'.*entity\.', r'.*dto\.', r'.*vo\.'],
-            'tests': [r'.*test\.', r'.*spec\.', r'.*\.spec\.'],
-            'configs': [r'.*config\.', r'.*settings\.', r'.*\.conf'],
-            'utils': [r'.*util\.', r'.*helper\.', r'.*tool\.']
-        }
-
-        for extension, files in files_by_extension.items():
-            for file_info in files:
-                filename = file_info['filename'].lower()
-
-                for pattern_type, patterns_list in pattern_mappings.items():
-                    for pattern in patterns_list:
-                        if re.search(pattern, filename):
-                            patterns[pattern_type].append(file_info['relative_path'])
-                            break
-
-        # Filtrer les listes vides
-        return {k: v for k, v in patterns.items() if v}
-
-
+    def get_chunks(self) -> List[CodeChunk]:
+        """Retourne tous les chunks extraits"""
+        return self.chunks
