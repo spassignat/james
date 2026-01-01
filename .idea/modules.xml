@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/agents/agents.iml" filepath="$PROJECT_DIR$/agents/agents.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/config/config.iml" filepath="$PROJECT_DIR$/config/config.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/james.iml" filepath="$PROJECT_DIR$/.idea/james.iml" />
+      <module fileurl="file://$PROJECT_DIR$/parsers/parsers.iml" filepath="$PROJECT_DIR$/parsers/parsers.iml" />
+      <module fileurl="file://$PROJECT_DIR$/vector/vector.iml" filepath="$PROJECT_DIR$/vector/vector.iml" />
+    </modules>
+  </component>
+</project>

@@ -1,0 +1,9 @@
+class {{ cls.name }}:
+{% if cls.attributes and cls.attributes|length > 0 %}
+    def __init__(self{% for attr in cls.attributes %}, {{ attr.name }}{% endfor %}):
+{% for attr in cls.attributes %}
+        self.{{ attr.name }} = {{ attr.name }}
+{% endfor %}
+{% else %}
+    pass
+{% endif %}

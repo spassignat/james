@@ -1,0 +1,207 @@
+{
+  "categories": [
+	{ "id": "perimeter", "name": "Périmètres" },
+	{ "id": "area", "name": "Surfaces" },
+	{ "id": "volume", "name": "Volumes" },
+	{ "id": "conversion", "name": "Conversions d'unités" },
+	{ "id": "density", "name": "Masses volumiques" },
+	{ "id": "mixed", "name": "Problèmes complexes" }
+  ],
+  "questions": {
+	"perimeter": [
+	  {
+		"id": 1,
+		"text": "Quel est le périmètre d'un carré de côté 5 cm?",
+		"type": "qcm",
+		"answers": ["10 cm", "20 cm", "25 cm", "15 cm"],
+		"correctAnswer": "20 cm",
+		"explanation": "Le périmètre d'un carré est 4 × côté = 4 × 5 = 20 cm",
+		"figure": "square",
+		"dimensions": { "side": 5 }
+	  },
+	  {
+		"id": 2,
+		"text": "Calculez le périmètre d'un rectangle de longueur 8 cm et largeur 3 cm.",
+		"type": "numeric",
+		"correctAnswer": 22,
+		"explanation": "Périmètre = 2 × (longueur + largeur) = 2 × (8 + 3) = 22 cm",
+		"figure": "rectangle",
+		"dimensions": { "length": 8, "width": 3 }
+	  },
+	  {
+		"id": 3,
+		"text": "Quel est le périmètre d'un cercle de diamètre 10 cm? (π ≈ 3.14)",
+		"type": "qcm",
+		"answers": ["31.4 cm", "15.7 cm", "25 cm", "30 cm"],
+		"correctAnswer": "31.4 cm",
+		"explanation": "Périmètre = π × diamètre = 3.14 × 10 = 31.4 cm",
+		"figure": "circle",
+		"dimensions": { "diameter": 10 }
+	  }
+	],
+	"area": [
+	  {
+		"id": 1,
+		"text": "Quelle est l'aire d'un carré de côté 6 cm?",
+		"type": "qcm",
+		"answers": ["12 cm²", "24 cm²", "36 cm²", "30 cm²"],
+		"correctAnswer": "36 cm²",
+		"explanation": "Aire = côté × côté = 6 × 6 = 36 cm²",
+		"figure": "square",
+		"dimensions": { "side": 6 }
+	  },
+	  {
+		"id": 2,
+		"text": "Calculez l'aire d'un triangle de base 10 cm et hauteur 4 cm.",
+		"type": "numeric",
+		"correctAnswer": 20,
+		"explanation": "Aire = (base × hauteur) / 2 = (10 × 4) / 2 = 20 cm²",
+		"figure": "triangle",
+		"dimensions": { "base": 10, "height": 4 }
+	  },
+	  {
+		"id": 3,
+		"text": "Quelle est l'aire d'un disque de rayon 7 cm? (π ≈ 3.14)",
+		"type": "qcm",
+		"answers": ["43.96 cm²", "153.86 cm²", "21.98 cm²", "49 cm²"],
+		"correctAnswer": "153.86 cm²",
+		"explanation": "Aire = π × rayon² = 3.14 × 7² = 3.14 × 49 = 153.86 cm²",
+		"figure": "circle",
+		"dimensions": { "radius": 7 }
+	  }
+	],
+	"volume": [
+	  {
+		"id": 1,
+		"text": "Quel est le volume d'un cube d'arête 3 cm?",
+		"type": "qcm",
+		"answers": ["9 cm³", "18 cm³", "27 cm³", "12 cm³"],
+		"correctAnswer": "27 cm³",
+		"explanation": "Volume = arête³ = 3 × 3 × 3 = 27 cm³",
+		"figure": "cube",
+		"dimensions": { "side": 3 }
+	  },
+	  {
+		"id": 2,
+		"text": "Calculez le volume d'un parallélépipède rectangle de dimensions 5 cm, 4 cm et 6 cm.",
+		"type": "numeric",
+		"correctAnswer": 120,
+		"explanation": "Volume = longueur × largeur × hauteur = 5 × 4 × 6 = 120 cm³",
+		"figure": "rectangularPrism",
+		"dimensions": { "length": 5, "width": 4, "height": 6 }
+	  },
+	  {
+		"id": 3,
+		"text": "Quel est le volume d'une sphère de rayon 5 cm? (π ≈ 3.14)",
+		"type": "qcm",
+		"answers": ["314 cm³", "523.33 cm³", "125 cm³", "78.5 cm³"],
+		"correctAnswer": "523.33 cm³",
+		"explanation": "Volume = (4/3) × π × rayon³ = (4/3) × 3.14 × 125 ≈ 523.33 cm³",
+		"figure": "sphere",
+		"dimensions": { "radius": 5 }
+	  }
+	],
+	"conversion": [
+	  {
+		"id": 1,
+		"text": "Combien de mètres y a-t-il dans 2.5 km?",
+		"type": "qcm",
+		"answers": ["25 m", "250 m", "2500 m", "25000 m"],
+		"correctAnswer": "2500 m",
+		"explanation": "1 km = 1000 m, donc 2.5 km = 2.5 × 1000 = 2500 m",
+		"figure": null
+	  },
+	  {
+		"id": 2,
+		"text": "Convertissez 4500 g en kg.",
+		"type": "numeric",
+		"correctAnswer": 4.5,
+		"explanation": "1 kg = 1000 g, donc 4500 g = 4500 / 1000 = 4.5 kg",
+		"figure": null
+	  },
+	  {
+		"id": 3,
+		"text": "Combien de centimètres cubes y a-t-il dans 3.5 L?",
+		"type": "qcm",
+		"answers": ["35 cm³", "350 cm³", "3500 cm³", "35000 cm³"],
+		"correctAnswer": "3500 cm³",
+		"explanation": "1 L = 1000 cm³, donc 3.5 L = 3.5 × 1000 = 3500 cm³",
+		"figure": null
+	  }
+	],
+	"density": [
+	  {
+		"id": 1,
+		"text": "Un objet a une masse de 500 g et un volume de 250 cm³. Quelle est sa masse volumique?",
+		"type": "qcm",
+		"answers": ["0.5 g/cm³", "2 g/cm³", "125000 g/cm³", "1.25 g/cm³"],
+		"correctAnswer": "2 g/cm³",
+		"explanation": "Masse volumique = masse / volume = 500 / 250 = 2 g/cm³",
+		"figure": null
+	  },
+	  {
+		"id": 2,
+		"text": "La masse volumique de l'or est de 19.3 g/cm³. Quelle est la masse d'un cube d'or de 2 cm d'arête?",
+		"type": "numeric",
+		"correctAnswer": 154.4,
+		"explanation": "Volume du cube = 2³ = 8 cm³. Masse = masse volumique × volume = 19.3 × 8 = 154.4 g",
+		"figure": "cube",
+		"dimensions": { "side": 2 }
+	  },
+	  {
+		"id": 3,
+		"text": "Un liquide a une masse de 800 g et occupe un volume de 1 L. Quelle est sa masse volumique en g/cm³?",
+		"type": "qcm",
+		"answers": ["0.8 g/cm³", "1.25 g/cm³", "800 g/cm³", "0.08 g/cm³"],
+		"correctAnswer": "0.8 g/cm³",
+		"explanation": "1 L = 1000 cm³. Masse volumique = 800 / 1000 = 0.8 g/cm³",
+		"figure": null
+	  }
+	],
+	"mixed": [
+	  {
+		"id": 1,
+		"text": "Une piscine rectangulaire mesure 8 m de long, 4 m de large et 1.5 m de profondeur. Quel volume d'eau peut-elle contenir?",
+		"type": "numeric",
+		"correctAnswer": 48,
+		"explanation": "Volume = longueur × largeur × hauteur = 8 × 4 × 1.5 = 48 m³",
+		"figure": "rectangularPrism",
+		"dimensions": { "length": 8, "width": 4, "height": 1.5 }
+	  },
+	  {
+		"id": 2,
+		"text": "Un réservoir cylindrique a un diamètre de 2 m et une hauteur de 3 m. Calculez son volume (π ≈ 3.14).",
+		"type": "numeric",
+		"correctAnswer": 9.42,
+		"explanation": "Rayon = diamètre/2 = 1 m. Volume = π × rayon² × hauteur = 3.14 × 1² × 3 = 9.42 m³",
+		"figure": "cylinder",
+		"dimensions": { "radius": 1, "height": 3 }
+	  },
+	  {
+		"id": 3,
+		"text": "Une plaque de fer de 2 m² a une épaisseur de 5 cm. Si la masse volumique du fer est 7800 kg/m³, quelle est sa masse?",
+		"type": "numeric",
+		"correctAnswer": 780,
+		"explanation": "Volume = surface × épaisseur = 2 × 0.05 = 0.1 m³. Masse = masse volumique × volume = 7800 × 0.1 = 780 kg",
+		"figure": null
+	  },
+	  {
+		"id": 4,
+		"text": "Un câble en cuivre de 50 m de long a une section de 10 mm². La masse volumique du cuivre est 8960 kg/m³. Quelle est sa masse?",
+		"type": "numeric",
+		"correctAnswer": 4.48,
+		"explanation": "Volume = longueur × section = 50 × 10×10⁻⁶ = 0.0005 m³. Masse = 8960 × 0.0005 = 4.48 kg",
+		"figure": null
+	  },
+	  {
+		"id": 5,
+		"text": "Une sphère en aluminium a une masse de 540 g. La masse volumique de l'aluminium est 2.7 g/cm³. Quel est son rayon?",
+		"type": "numeric",
+		"correctAnswer": 3,
+		"explanation": "Volume = masse / masse volumique = 540 / 2.7 = 200 cm³. Rayon = ∛(3V/4π) = ∛(3×200/(4×3.14)) ≈ 3 cm",
+		"figure": "sphere",
+		"dimensions": { "radius": 3 }
+	  }
+	]
+  }
+}

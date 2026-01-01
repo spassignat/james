@@ -1,0 +1,4 @@
+@app.route('{{ api.path }}', methods=['{{ api.method }}'])
+def {{ api.handler if api.handler else 'handle_request' }}({% if api.parameters %}{{ api.parameters | map(attribute='name') | join(', ') }}{% endif %}):
+    # TODO: Implémenter la logique de l'API
+    return jsonify({})

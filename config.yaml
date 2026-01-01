@@ -1,0 +1,124 @@
+# config/vectorization_config.yaml
+project:
+  # Répertoire racine du projet à vectoriser
+  root_directory: "/home/stephane/IdeaProjects/gestion-domaine/gestion"
+
+  # Extensions de fichiers à inclure
+  included_extensions:
+    - ".java"
+    - ".vue"
+    - ".js"
+    - ".ts"
+    - ".sql"
+    - ".json"
+    - ".properties"
+    - ".xml"
+    - ".html"
+    - ".css"
+    - ".yaml"
+    - ".yml"
+    - ".py"
+    - ".md"
+
+  # Patterns de répertoires à exclure (regex)
+  excluded_directories:
+    - "node_modules"
+    - "\\.git"
+    - "target"
+    - "build"
+    - "dist"
+    - "\\.idea"
+    - "\\.vscode"
+    - "venv"
+    - "__pycache__"
+
+  # Patterns de fichiers à exclure
+  excluded_files:
+    - ".*.log"
+
+  # Taille maximale des fichiers (en octets)
+  max_file_size: 5242880  # 5MB
+
+vectorization:
+  # Modèle d'embedding local
+  model_name: "all-MiniLM-L6-v2"
+
+  # Paramètres des chunks
+  chunk_strategies:
+    default:
+      chunk_size: 800
+      chunk_overlap: 100
+    java:
+      chunk_size: 600
+      chunk_overlap: 80
+    vue:
+      chunk_size: 1000
+      chunk_overlap: 150
+    sql:
+      chunk_size: 1200
+      chunk_overlap: 100
+
+  # Base de données vectorielle
+  database:
+    type: "chromadb"  # ou "faiss"
+    path: "./vector_db"
+    collection_name: "code_chunks"
+
+  # Performance
+  batch_size: 50
+  max_workers: 2
+
+ollama:
+  # Configuration pour l'utilisation future avec Ollama
+  base_url: "http://localhost:11434"
+  context_size: 4096
+
+logging:
+  level: "INFO"
+  file: "./vectorization.log"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# config/vectorization_config.yaml
+# ... (votre configuration existante)
+
+analysis:
+  # Configuration des agents d'analyse
+  agents:
+    architecture_agent:
+      model: "codellama"
+      temperature: 0.1
+      max_tokens: 4000
+      timeout: 600
+
+    pattern_agent:
+      model: "codellama"
+      temperature: 0.2
+      max_tokens: 3000
+      timeout: 60
+
+    rules_agent:
+      model: "codellama"
+      temperature: 0.1
+      max_tokens: 5000
+      timeout: 70
+
+    generative_description_agent:
+      model: "codellama"
+      temperature: 0.1
+      max_tokens: 5000
+      timeout: 80
+
+  # Répertoire de sortie pour la documentation
+  output_directory: "./code_analysis"
+
+  # Patterns à analyser spécifiquement
+  focus_patterns:
+    - "controller"
+    - "service"
+    - "repository"
+    - "component"
+    - "util"
+    - "config"
+    - "model"
+    - "entity"
+    - "dto"
