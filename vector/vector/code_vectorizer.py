@@ -88,7 +88,7 @@ class CodeVectorizer:
 
         # Log final et sauvegarde
         self._log_final_stats(stats)
-        self.vector_store.save()
+        self.vector_store.persist_index()
 
         return stats
 
@@ -591,5 +591,5 @@ class CodeVectorizer:
     def cleanup(self):
         """Nettoie les ressources"""
         if hasattr(self, 'vector_store'):
-            self.vector_store.save()
+            self.vector_store.persist_index()
         logger.info("🧹 CodeVectorizer nettoyé")

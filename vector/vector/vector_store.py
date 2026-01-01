@@ -1,13 +1,15 @@
 # src/vector/vector_store.py
+import json
 import logging
 import pickle
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 import chromadb
 import numpy as np
+import time
 from chromadb import Settings
 
 from models.code_chunk import CodeChunk
@@ -175,3 +177,103 @@ class VectorStore:
         except Exception as e:
             logger.error(f"❌ Erreur recherche: {e}")
             return []
+
+    def add_chunks(self, file_info: Dict[str, Any], chunks: List[Dict[str, Any]],
+                   embeddings: Optional[np.ndarray] = None) -> List[str]:
+        """
+        Ajoute des chunks à la collection ChromaDB.
+
+        :param file_info: infos sur le fichier, exemple: {'path': 'src/main.py', 'filename': 'main.py', 'extension': 'py'}
+        :param chunks: liste de chunks, chaque chunk est un dict avec au moins 'content' et éventuellement 'metadata'
+        :param embeddings: embeddings pré-calculés (optionnel)
+        :return: liste des IDs ajoutés
+        """
+        ids = []
+        try:
+            for i, chunk in enumerate(chunks):
+                chunk_id = f"{hash(file_info.get('path', ''))}_{i}_{int(time.time() * 1000)}"
+                content = chunk.get('content', '')[:10000]  # limiter taille
+
+                metadata = chunk.get('metadata', {})
+                # Au moment de créer enriched_metadata
+                raw_metadata = {
+                    'file_path': file_info.get('path', ''),
+                    'filename': file_info.get('filename', ''),
+                    'extension': file_info.get('extension', ''),
+                    'chunk_index': i,
+                    **metadata  # ce qui vient du chunk
+                }
+
+                # Nettoyer pour ChromaDB
+                enriched_metadata = self._clean_metadata(raw_metadata)
+
+                logger.info(f"📌 Chunk ready to add file: {file_info.get('filename')}, "
+                            f"path: {file_info.get('path')}, chunk_type: {enriched_metadata.get('chunk_type')}")
+
+                # Ajouter à ChromaDB
+                if self._embedding_function:
+                    self.collection.add(
+                        documents=[content],
+                        metadatas=[enriched_metadata],
+                        ids=[chunk_id]
+                    )
+                else:
+                    # embeddings fournis
+                    emb = embeddings[i].tolist() if embeddings is not None else None
+                    self.collection.add(
+                        documents=[content],
+                        embeddings=[emb] if emb is not None else None,
+                        metadatas=[enriched_metadata],
+                        ids=[chunk_id]
+                    )
+
+                ids.append(chunk_id)
+
+                # Mettre à jour l'index interne
+                self._index['extension'][enriched_metadata.get('extension', 'unknown')].append(chunk_id)
+                self._index['file_path'][enriched_metadata.get('file_path', '')].append(chunk_id)
+                self._index['language'][enriched_metadata.get('language', 'unknown')].append(chunk_id)
+                self._index['chunk_type'][enriched_metadata.get('chunk_type', 'unknown')].append(chunk_id)
+
+            self.persist_index()
+            return ids
+
+        except Exception as e:
+            logger.error(f"❌ Erreur ajout chunks: {e}", exc_info=True)
+            return []
+
+    def _clean_metadata(self, metadata_dict: Dict[str, Any]) -> Dict[str, Any]:
+        cleaned = {}
+
+        for key, value in metadata_dict.items():
+            if value is None:
+                # Valeurs par défaut strictes pour ChromaDB
+                cleaned[key] = ""  # on choisit str vide pour None
+            elif isinstance(value, list) or isinstance(value, dict):
+                # Sérialiser en string
+                try:
+                    cleaned[key] = json.dumps(value, ensure_ascii=False)
+                except:
+                    cleaned[key] = str(value)
+            elif isinstance(value, (int, float, bool, str)):
+                cleaned[key] = value
+            else:
+                # Tout le reste en string
+                cleaned[key] = str(value)
+
+        return cleaned
+
+    def get_stats(self) -> Dict[str, Any]:
+        """Retourne les statistiques globales de la base vectorielle et de l'index"""
+        try:
+            return {
+                'total_chunks': self.collection.count(),
+                'collection_name': getattr(self.collection, 'name', None),
+                'collection_metadata': getattr(self.collection, 'metadata', None),
+                'embedding_function': 'custom' if self._embedding_function else 'default',
+                'persist_path': self.db_config.get('path', './vector_db'),
+                'index_stats': self.get_index_stats()
+            }
+        except Exception as e:
+            logger.error(f"❌ Erreur récupération stats: {e}")
+            return {'error': str(e)}
