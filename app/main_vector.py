@@ -7,7 +7,7 @@ import sys
 import os
 
 from config.config_loader import ConfigLoader
-from james_parsers.multilanguage_analyzer import MultiLanguageAnalyzer
+from parsers.multilanguage_analyzer import MultiLanguageAnalyzer
 from vector.code_vectorizer import CodeVectorizer
 
 # Ajouter le chemin src pour les imports

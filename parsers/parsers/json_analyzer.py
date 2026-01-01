@@ -3,7 +3,7 @@ import json
 import logging
 from typing import Dict, Any
 
-from james_parsers.analyzer import Analyzer
+from parsers.analyzer import Analyzer
 
 logger = logging.getLogger(__name__)
 

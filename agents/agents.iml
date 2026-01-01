@@ -10,6 +10,7 @@
     <orderEntry type="module" module-name="config" />
     <orderEntry type="module" module-name="parsers" />
     <orderEntry type="module" module-name="vector" />
+    <orderEntry type="module" module-name="model" exported="" />
   </component>
   <component name="TemplatesService">
     <option name="TEMPLATE_CONFIGURATION" value="Jinja2" />

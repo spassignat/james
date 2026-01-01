@@ -3,18 +3,18 @@ import logging
 import os
 from typing import Dict, Any
 
-from james_parsers.analyzer import Analyzer
-from james_parsers.css_analyzer import CSSAnalyzer
-from james_parsers.generic_analyzer import GenericAnalyzer
-from james_parsers.html_analyzer import HTMLAnalyzer
-from james_parsers.java_analyzer import JavaAnalyzer
-from james_parsers.javascript_analyzer import JavaScriptAnalyzer
-from james_parsers.json_analyzer import JSONAnalyzer
-from james_parsers.properties_analyzer import PropertiesAnalyzer
-from james_parsers.python_analyzer import PythonAnalyzer
-from james_parsers.sql_analyzer import SQLAnalyzer
-from james_parsers.vuejs_analyzer import VueJSAnalyzer
-from james_parsers.xml_analyzer import XMLAnalyzer
+from parsers.analyzer import Analyzer
+from parsers.css_analyzer import CSSAnalyzer
+from parsers.generic_analyzer import GenericAnalyzer
+from parsers.html_analyzer import HTMLAnalyzer
+from parsers.java_analyzer import JavaAnalyzer
+from parsers.javascript_analyzer import JavaScriptAnalyzer
+from parsers.json_analyzer import JSONAnalyzer
+from parsers.properties_analyzer import PropertiesAnalyzer
+from parsers.python_analyzer import PythonAnalyzer
+from parsers.sql_analyzer import SQLAnalyzer
+from parsers.vuejs_analyzer import VueJSAnalyzer
+from parsers.xml_analyzer import XMLAnalyzer
 
 logger = logging.getLogger(__name__)
 

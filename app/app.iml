@@ -11,6 +11,7 @@
     <orderEntry type="module" module-name="parsers" exported="" />
     <orderEntry type="module" module-name="vector" exported="" />
     <orderEntry type="module" module-name="agents" exported="" />
+    <orderEntry type="module" module-name="model" exported="" />
   </component>
   <component name="TemplatesService">
     <option name="TEMPLATE_CONFIGURATION" value="Jinja2" />
