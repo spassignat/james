@@ -1,23 +1,30 @@
-# agents/pipeline.py
-from typing import Dict
+import logging
+from typing import List
 from models.analysis_context import AnalysisContext
 from models.project_structure import ProjectStructure
+from agents.architecture_agent import ArchitectureAgent
+
+logger = logging.getLogger(__name__)
 
 class AnalysisPipeline:
     """
-    Orchestrateur d'agents.
-    Chaque agent retourne un ProjectStructure ou similaire.
+    Pipeline pour exécuter tous les agents d'analyse séquentiellement.
     """
+    def __init__(self, config):
+        self.config = config
+        self.architecture_agent = ArchitectureAgent(config)
 
-    def __init__(self, agents: list):
-        self.agents = agents
+    def run(self, context: AnalysisContext) -> List[ProjectStructure]:
+        """
+        Retourne la liste des ProjectStructure produites par les agents.
+        """
+        results: List[ProjectStructure] = []
 
-    def run(self, context: AnalysisContext) -> Dict[str, ProjectStructure]:
-        """
-        Retourne un dict {agent_name: ProjectStructure}.
-        """
-        results = {}
-        for agent in self.agents:
-            result: ProjectStructure = agent.analyze(context)
-            results[agent.agent_name] = result
+        # Architecture analysis
+        arch_result = self.architecture_agent.analyze(context)
+        results.append(arch_result)
+
+        # Ici tu pourrais ajouter d'autres agents d'analyse
+
+        logger.info(f"📊 Pipeline terminé: {len(results)} résultats")
         return results

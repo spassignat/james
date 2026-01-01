@@ -1,0 +1,10 @@
+/code_analysis/
+/vector_db/
+/venv/
+/.venv/
+/app/.venv/
+/agents/.venv/
+/config/.venv/
+/model/.venv/
+/parsers/.venv/
+/vector/.venv/

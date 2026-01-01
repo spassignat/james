@@ -1,42 +1,40 @@
-from agents.base_agent import BaseAgent
+import logging
+from typing import List
 from models.analysis_context import AnalysisContext
 from models.code_chunk import CodeChunk
-from typing import Dict
-
 from models.project_structure import ProjectStructure
+from agents.base_agent import BaseAgent
 
+logger = logging.getLogger(__name__)
 
 class GenerationAgent(BaseAgent):
-    def __init__(self, config: dict):
-        super().__init__(config, "generation_agent")
-        self.config = config
+    """
+    Génère du code ou de la documentation à partir des résultats d'analyse.
+    """
+    def __init__(self, config):
+        super().__init__(config, agent_name="generation_agent")
 
-    def generate(self, context: AnalysisContext, analysis_results: Dict[str, ProjectStructure]) -> Dict[str, CodeChunk]:
-        # Transformer les résultats d'analyse en texte
-        analysis_text = self._analysis_to_text(analysis_results)
+    def generate(
+            self,
+            context: AnalysisContext,
+            analysis_results: List[ProjectStructure]
+    ) -> List[CodeChunk]:
+        """
+        Génère des CodeChunk à partir des ProjectStructure.
+        """
+        generated_chunks = []
 
-        system_prompt = "Vous êtes un assistant développeur. Générez du code ou de la documentation."
+        # Logique d'exemple : génération fictive
+        for i, structure in enumerate(analysis_results):
+            chunk = CodeChunk(
+                content=f"# Documentation générée pour structure {i}",
+                filename=f"generated_doc_{i}.md",
+                file_path=f"/generated/generated_doc_{i}.md",
+                language="markdown",
+                category="documentation",
+                chunk_type="generated_doc"
+            )
+            generated_chunks.append(chunk)
 
-        llm_response = self._call_llm(prompt=analysis_text, system_prompt=system_prompt)
-
-        generated_chunk = CodeChunk(
-            content=llm_response,
-            file_path="generated/main.py",
-            filename="main.py",
-            language="python",
-            category="generated",
-            chunk_type="code"
-        )
-
-        return {generated_chunk.filename: generated_chunk}
-
-    def _analysis_to_text(self, analysis_results: Dict[str, ProjectStructure]) -> str:
-        lines = []
-        for agent_name, struct in analysis_results.items():
-            lines.append(f"## Résultats de {agent_name}")
-            lines.append(f"Résumé: {getattr(struct, 'summary', '')}")
-            if hasattr(struct, 'components'):
-                lines.append(f"Composants: {', '.join(getattr(struct, 'components', []))}")
-            if hasattr(struct, 'patterns'):
-                lines.append(f"Patterns: {', '.join(getattr(struct, 'patterns', []))}")
-        return "\n\n".join(lines)
+        logger.info(f"✅ {len(generated_chunks)} chunks générés")
+        return generated_chunks

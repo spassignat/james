@@ -1,140 +1,70 @@
 # src/main_analysis.py
-
 import logging
-from typing import List, Dict, Any
-
-from parsers.utils.Util import infer_language_from_path, infer_category_from_type
-from models.analysis_context import AnalysisContext
-from models.code_chunk import CodeChunk
-from models.project_structure import ProjectStructure
-
-from agents.agent_manager import AgentManager
 from config.config_loader import ConfigLoader
-from main_doc import RuleGenerator
 from project_analyzer import ProjectAnalyzer
-from vector.vector_store import VectorStore, get_existing_chunks, get_all_chunks_direct
+from vector.vector_store import VectorStore
+from agents.agent_manager import AgentManager
+from models.analysis_context import AnalysisContext
 
 # Configuration du logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-
-def analyze_project_structure(config: Dict[str, Any]) -> Dict[str, Any]:
-    """Analyse la structure du projet"""
-    logger.info("🔍 Analyse de la structure du projet...")
-    project_analyzer = ProjectAnalyzer(config)
-    return project_analyzer.analyze_project_structure()
-
-
-def get_chunks_for_analysis(config: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Récupère les chunks pour l'analyse"""
-    logger.info("📚 Récupération des chunks depuis la base vectorielle...")
-
-    vector_store = VectorStore(config)
-
-    # Méthode 1: Récupération directe (plus efficace)
-    chunks = get_all_chunks_direct(vector_store, limit=2000)
-
-    if not chunks:
-        # Méthode 2: Fallback avec recherche neutre
-        logger.warning(
-            "Méthode directe échouée, utilisation de la méthode de recherche..."
-        )
-        chunks = get_existing_chunks(vector_store, config, limit=1000)
-
-    # Filtrer et organiser les chunks par type pour l'analyse
-    organized_chunks = organize_chunks_by_type(chunks)
-
-    return organized_chunks
-
-
-def organize_chunks_by_type(chunks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Organise les chunks par type pour une analyse plus efficace"""
-    organized = []
-
-    for chunk in chunks:
-        metadata = chunk.get("metadata", {})
-        chunk_type = metadata.get("chunk_type", "unknown")
-        file_path = metadata.get("file_path", "")
-
-        enhanced_chunk = {
-            "content": chunk["content"],
-            "type": chunk_type,
-            "file_path": file_path,
-            "filename": metadata.get("filename", ""),
-            "language": infer_language_from_path(file_path),
-            "category": infer_category_from_type(chunk_type, file_path),
-        }
-        organized.append(enhanced_chunk)
-
-    return organized
-
-
 def main():
-    """Point d'entrée principal pour l'analyse rétrospective"""
+    """Point d'entrée principal pour l'analyse et la génération de code"""
     try:
         # Chargement configuration
-        logger.info("⚙️ Chargement de la configuration...")
+        logger.info("⚙️  Chargement de la configuration...")
         config_loader = ConfigLoader()
         config = config_loader.config
 
         # Étape 1: Analyse de la structure du projet
-        raw_structure = analyze_project_structure(config)
+        logger.info("🔍 Analyse de la structure du projet...")
+        project_analyzer = ProjectAnalyzer(config)
+        project_structure = project_analyzer.analyze_project_structure()
 
-        # Étape 2: Récupération des chunks existants
-        raw_chunks = get_chunks_for_analysis(config)
+        # Étape 2: Récupération des chunks vectorisés
+        logger.info("📚 Récupération des chunks depuis la base vectorielle...")
+        vector_store = VectorStore(config)
+        chunks = vector_store.get_all_chunks(limit=2000)
 
-        if not raw_chunks:
+        if not chunks:
             logger.error("❌ Aucun chunk trouvé dans la base vectorielle")
             return
 
-        # Étape 2b: Création des objets CodeChunk
-        chunks = [
-            CodeChunk(
-                content=c["content"],
-                file_path=c["file_path"],
-                filename=c["filename"],
-                language=c["language"],
-                category=c["category"],
-                chunk_type=c["type"],
-            )
-            for c in raw_chunks
-        ]
-
-        # Étape 3: Création de l'objet AnalysisContext
-        analysis_context = AnalysisContext(
-            project_structure=ProjectStructure(**raw_structure),
-            chunks=chunks,
-            config=config,
-        )
-
         logger.info(f"📊 Analyse basée sur {len(chunks)} chunks et structure de projet")
 
-        # Étape 4: Exécution du pipeline d'agents
+        # Étape 3: Préparer le contexte d'analyse
+        context = AnalysisContext(
+            project_structure=project_structure,
+            chunks=chunks,
+            project_config=config.get('project', {})
+        )
+
+        # Étape 4: Exécution du pipeline d'agents d'analyse
         logger.info("🤖 Lancement des agents d'analyse...")
         agent_manager = AgentManager(config_loader)
-        results = agent_manager.run_analysis_pipeline(analysis_context)
+        analysis_results = agent_manager.run_analysis_pipeline(context)
 
-        # Étape 5: Génération de la documentation
-        logger.info("📝 Génération de la documentation...")
-        rule_generator = RuleGenerator(config)
-        documentation_path = rule_generator.generate_rules_documentation(results)
+        # On peut ici envisager un pipeline de génération plus tard
+        # generation_results = generation_agent.generate(context, analysis_results)
 
-        logger.info(f"✅ Analyse terminée! Documentation générée: {documentation_path}")
+        # Étape 5: Sauvegarde ou export des résultats
+        logger.info("💾 Sauvegarde des résultats...")
+        vector_store.persist_index()  # sauvegarde de l'index et persistance
 
-        # Résumé
+        # Étape 6: Résumé
         stats = {
-            "total_chunks_analyzed": len(chunks),
-            "patterns_identified": len(raw_structure.get("patterns", {})),
-            "documentation_path": documentation_path,
+            'total_chunks': len(chunks),
+            'total_modules': len(project_structure.modules),
+            'patterns_identified': project_structure.patterns_identified,
+            'analysis_count': len(analysis_results),
         }
-
-        logger.info(f"📈 Résumé: {stats}")
+        logger.info(f"📈 Résumé de l'analyse: {stats}")
 
     except Exception as e:
-        logger.error(f"❌ Erreur lors de l'analyse: {e}")
+        logger.error(f"❌ Erreur lors de l'analyse: {e}", exc_info=True)
         raise
-
 
 if __name__ == "__main__":
     main()
