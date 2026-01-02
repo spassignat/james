@@ -24,9 +24,8 @@ class BaseAgent(ABC):
             for agent in agents.values():
                 model = agent.get('model', 'llama2')
                 logger.debug(f"✅ Pull model '{model}'")
-                self.ollama_client.pull_model(model)
-
-            logger.info(f"✅ Agent '{agent_name}' initialisé avec Ollama")
+                pull_model = self.ollama_client.pull_model(model)
+                logger.info(f"✅ Agent '{agent_name}' initialisé avec {model}: {pull_model}")
         except Exception as e:
             logger.error(f"❌ Erreur initialisation Ollama: {e}")
             self.ollama_client = None
