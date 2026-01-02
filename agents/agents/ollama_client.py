@@ -225,15 +225,23 @@ class AdaptiveOllamaClient:
 
     def pull_model(self, model: str):
         payload = {
-            model: model
+            "model": model,
+            "stream": False
         }
+        headers = {
+            "Content-Type": "application/json"
+        }
+
         url = f"{self.base_url}/api/pull"
 
         try:
-            response = requests.post(url, json=payload, timeout=60)
+            response = requests.post(url, json=payload, headers=headers, stream=True, timeout=300)
             response.raise_for_status()
             data = response.json()
-            return data
+            return {
+                "success": data.get('status') == 'success',
+                "data": data
+            }
         except Exception as e:
             logger.error(f"Erreur API pull model: {e}\n{payload}")
             return ""

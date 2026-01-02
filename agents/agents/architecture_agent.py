@@ -32,7 +32,7 @@ class ArchitectureAgent(BaseAgent):
         Limite la taille et met en forme.
         """
         lines = []
-        for chunk in chunks[:10]:  # max 10 chunks
+        for chunk in chunks[:10000]:  # max 10 chunks
             lines.append(f"### {chunk.filename} ({chunk.language}, {chunk.category})")
             content_preview = chunk.content[:300].replace("```", "'``'")
             lines.append(f"```\n{content_preview}\n```")

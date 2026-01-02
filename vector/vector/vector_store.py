@@ -13,7 +13,7 @@ import time
 from chromadb import Settings
 
 from models.code_chunk import CodeChunk
-from parsers.utils.Util import infer_language_from_path, infer_category_from_type
+from models.model_factory import ModelFactory
 
 logger = logging.getLogger(__name__)
 
@@ -126,21 +126,10 @@ class VectorStore:
             self._embedding_function = None
             logger.warning("⚠️ Embedding par défaut utilisé")
 
-    def create_code_chunk(self, raw_chunk: Dict[str, Any]) -> CodeChunk:
-        metadata = raw_chunk.get("metadata", {})
-        return CodeChunk(
-            content=raw_chunk.get("content", ""),
-            file_path=metadata.get("file_path", ""),
-            filename=metadata.get("filename", ""),
-            language=infer_language_from_path(metadata.get("file_path", "")),
-            category=infer_category_from_type(metadata.get("chunk_type", ""), metadata.get("file_path", "")),
-            chunk_type=metadata.get("chunk_type", "unknown"),
-        )
-
     def get_all_chunks(self, limit: int = 2000) -> List[CodeChunk]:
         """Retourne tous les chunks sous forme typée CodeChunk"""
         try:
-            results = self.collection.get(limit=limit, include=["documents", "metadatas", "ids"])
+            results = self.collection.get(limit=limit, include=["documents", "metadatas"])
             chunks = []
             for i in range(len(results["documents"])):
                 raw = {
@@ -148,7 +137,7 @@ class VectorStore:
                     "metadata": results["metadatas"][i],
                     "id": results["ids"][i],
                 }
-                chunks.append(self.create_code_chunk(raw))
+                chunks.append(ModelFactory.create_code_chunk(raw))
             return chunks
         except Exception as e:
             logger.error(f"❌ Erreur récupération chunks: {e}")
@@ -172,7 +161,7 @@ class VectorStore:
                     "metadata": results["metadatas"][0][i],
                     "id": results["ids"][0][i],
                 }
-                chunks.append(self.create_code_chunk(raw))
+                chunks.append(ModelFactory.create_code_chunk(raw))
             return chunks
         except Exception as e:
             logger.error(f"❌ Erreur recherche: {e}")
@@ -242,7 +231,8 @@ class VectorStore:
             logger.error(f"❌ Erreur ajout chunks: {e}", exc_info=True)
             return []
 
-    def _clean_metadata(self, metadata_dict: Dict[str, Any]) -> Dict[str, Any]:
+    @staticmethod
+    def _clean_metadata(metadata_dict: Dict[str, Any]) -> Dict[str, Any]:
         cleaned = {}
 
         for key, value in metadata_dict.items():
@@ -260,7 +250,6 @@ class VectorStore:
             else:
                 # Tout le reste en string
                 cleaned[key] = str(value)
-
         return cleaned
 
     def get_stats(self) -> Dict[str, Any]:
@@ -277,3 +266,26 @@ class VectorStore:
         except Exception as e:
             logger.error(f"❌ Erreur récupération stats: {e}")
             return {'error': str(e)}
+
+
+def get_index_stats(self) -> Dict[str, Any]:
+    """Retourne les statistiques de l'index"""
+    try:
+        stats = {}
+        for key in self._index.keys():
+            index_dict = self._index[key]
+            if isinstance(index_dict, defaultdict):
+                index_dict = dict(index_dict)
+                stats[f'{key}_count'] = len(index_dict)
+                total_ids = sum(len(ids) for ids in index_dict.values())
+                stats[f'{key}_total_ids'] = total_ids
+            # Top 5 des valeurs les plus fréquentes
+            if index_dict:
+                top_items = sorted(index_dict.items(), key=lambda x: len(x[1]), reverse=True)[:5]
+                stats[f'{key}_top_5'] = [{'value': val, 'count': len(ids)} for val, ids in top_items]
+                return stats
+    except Exception as e:
+        (
+            logger.error(f"❌ Erreur statistiques index: {e}")
+        )
+    return {'error': str(e)}

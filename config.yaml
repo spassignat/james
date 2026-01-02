@@ -85,7 +85,7 @@ analysis:
   # Configuration des agents d'analyse
   agents:
     architecture_agent:
-      model: "codellama"
+      model: "deepseek-coder:33b"
       temperature: 0.1
       max_tokens: 4000
       timeout: 600

@@ -20,7 +20,7 @@ class BaseAgent(ABC):
             ollama_config = config.get('ollama', {})
             base_url = ollama_config.get('base_url', 'http://localhost:11434')
             self.ollama_client = AdaptiveOllamaClient(base_url)
-            agents = config.get('analysis', {}).get('agents', [])
+            agents = config.get('analysis', {}).get('agents', {})
             for agent in agents.values():
                 model = agent.get('model', 'llama2')
                 logger.debug(f"✅ Pull model '{model}'")
@@ -54,8 +54,9 @@ class BaseAgent(ABC):
         temp = self.agent_config.get('temperature', temperature)
         tok = self.agent_config.get('max_tokens', 2048)
         tout = self.agent_config.get('timeout', 60)
+        llm = self.agent_config.get('model', 'llama2')
         return self.ollama_client.generate_text(
-            model=self.agent_config.get('model', 'llama2'),
+            model=llm,
             prompt=prompt,
             system_prompt=system_prompt,
             temperature=temp,
