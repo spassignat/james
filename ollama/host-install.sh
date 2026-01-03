@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Mettre à jour les paquets
 sudo apt-get update
 

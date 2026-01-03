@@ -3,12 +3,13 @@ from abc import ABC
 from typing import Dict, Any, Optional
 
 from agents.ollama_client import AdaptiveOllamaClient
+from vector.vector_store import VectorStore
 
 logger = logging.getLogger(__name__)
 
 
 class BaseAgent(ABC):
-    def analyze(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def analyze(self, context: Dict[str, Any], vector_store: VectorStore) -> Dict[str, Any]:
         pass
 
     def __init__(self, config: Dict[str, Any], agent_name: str):
@@ -21,11 +22,16 @@ class BaseAgent(ABC):
             base_url = ollama_config.get('base_url', 'http://localhost:11434')
             self.ollama_client = AdaptiveOllamaClient(base_url)
             agents = config.get('analysis', {}).get('agents', {})
-            for agent in agents.values():
-                model = agent.get('model', 'llama2')
-                logger.debug(f"✅ Pull model '{model}'")
-                pull_model = self.ollama_client.pull_model(model)
-                logger.info(f"✅ Agent '{agent_name}' initialisé avec {model}: {pull_model}")
+            agent =agents.get(agent_name)
+            if agent:
+                model_name = agent.get('model', 'llama2')
+                models = self.ollama_client.get_models()
+                existe = any(m['model'] == model_name or m['name'] == model_name for m in models)
+                if not existe:
+                    logger.debug(f"✅ Pull model '{model_name}'")
+                    pull_model = self.ollama_client.pull_model(model_name)
+                    logger.info(f"✅ Load model {model_name} = {pull_model}")
+                logger.info(f"✅ Agent '{agent_name}' initialisé avec {model_name}")
         except Exception as e:
             logger.error(f"❌ Erreur initialisation Ollama: {e}")
             self.ollama_client = None

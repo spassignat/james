@@ -1,9 +1,10 @@
 # src/agents/generative_description_agent.py
 import logging
-from typing import Dict, Any, List
 import re
+from typing import Dict, Any, List
 
 from agents.base_agent import BaseAgent
+from vector.vector_store import VectorStore
 
 # Import optionnel de Jinja2 pour le rendu de templates
 try:
@@ -33,7 +34,7 @@ class GenerativeDescriptionAgent(BaseAgent):
         except Exception as e:
             logger.warning(f"Échec d'initialisation Jinja2: {e}")
 
-    def analyze(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def analyze(self, context: Dict[str, Any], vector_store: VectorStore) -> Dict[str, Any]:
         """Extrait les descriptions qui auraient permis de générer le code"""
         logger.info(f"📝 Début extraction descriptions génératives")
 

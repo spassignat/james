@@ -44,7 +44,7 @@ def main():
         # Étape 4: Exécution du pipeline d'agents d'analyse
         logger.info("🤖 Lancement des agents d'analyse...")
         agent_manager = AgentManager(config)
-        analysis_results = agent_manager.run_analysis_pipeline(context)
+        analysis_results = agent_manager.run_analysis_pipeline(context,vector_store)
 
         # On peut ici envisager un pipeline de génération plus tard
         # generation_results = generation_agent.generate(context, analysis_results)

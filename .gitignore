@@ -8,3 +8,4 @@
 /model/.venv/
 /parsers/.venv/
 /vector/.venv/
+/ollama/llm/

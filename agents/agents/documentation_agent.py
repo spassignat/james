@@ -1,18 +1,21 @@
 import logging
 from typing import List
+
+from agents.base_agent import BaseAgent
 from models.analysis_context import AnalysisContext
 from models.code_chunk import CodeChunk
 from models.project_structure import ProjectStructure
-from agents.base_agent import BaseAgent
 
 logger = logging.getLogger(__name__)
 
-class GenerationAgent(BaseAgent):
+
+class DocumentationAgent(BaseAgent):
     """
     Génère du code ou de la documentation à partir des résultats d'analyse.
     """
+
     def __init__(self, config):
-        super().__init__(config, agent_name="generation_agent")
+        super().__init__(config, agent_name="documentation_agent")
 
     def generate(
             self,

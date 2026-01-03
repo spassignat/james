@@ -2,15 +2,17 @@ import logging
 from typing import Dict, Any, List
 
 from agents.base_agent import BaseAgent
+from vector.vector_store import VectorStore
 
 logger = logging.getLogger(__name__)
+
 
 class PatternAgent(BaseAgent):
     def __init__(self, config: Dict[str, Any]):
         # CORRECTION: Appel correct au parent
         super().__init__(config, 'pattern_agent')
 
-    def analyze(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def analyze(self, context: Dict[str, Any], vector_store: VectorStore) -> Dict[str, Any]:
         """Analyse les patterns spécifiques par type de fichier"""
         logger.info(f"🔍 Début analyse patterns par {self.agent_name}")
 

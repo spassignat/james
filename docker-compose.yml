@@ -6,6 +6,10 @@ services:
     build: ollama
     ports:
       - "11434:11434"
+    environment:
+      - MY_OLLAMA_MODELS=llama3,deepseek-coder:1.3b,codellama
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_NUM_PARALLEL=1
     healthcheck:
       test: curl --fail http://localhost:11434/ || exit 1
       interval: 60s
@@ -19,12 +23,5 @@ services:
             - driver: nvidia
               count: all # alternatively, use `count: all` for all GPUs
               capabilities: [ gpu ]
-
-networks:
-  backend_net:
-    driver: bridge
-    enable_ipv6: false
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.20.0.0/16
+    volumes:
+      - ./ollama/llm/:/root/.ollama/models/

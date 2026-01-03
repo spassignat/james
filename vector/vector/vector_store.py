@@ -14,6 +14,7 @@ from chromadb import Settings
 
 from models.code_chunk import CodeChunk
 from models.model_factory import ModelFactory
+from models.search_intent import SearchIntent
 
 logger = logging.getLogger(__name__)
 
@@ -267,25 +268,52 @@ class VectorStore:
             logger.error(f"❌ Erreur récupération stats: {e}")
             return {'error': str(e)}
 
+    def search(self, intent: SearchIntent, top_k: int = None) -> Dict[str, List]:
+        """
+        Recherche les chunks pertinents dans ChromaDB selon l'intent.
+        Utilise la bonne API ChromaDB (query_texts + n_results).
+        """
 
-def get_index_stats(self) -> Dict[str, Any]:
-    """Retourne les statistiques de l'index"""
-    try:
-        stats = {}
-        for key in self._index.keys():
-            index_dict = self._index[key]
-            if isinstance(index_dict, defaultdict):
-                index_dict = dict(index_dict)
-                stats[f'{key}_count'] = len(index_dict)
-                total_ids = sum(len(ids) for ids in index_dict.values())
-                stats[f'{key}_total_ids'] = total_ids
-            # Top 5 des valeurs les plus fréquentes
-            if index_dict:
-                top_items = sorted(index_dict.items(), key=lambda x: len(x[1]), reverse=True)[:5]
-                stats[f'{key}_top_5'] = [{'value': val, 'count': len(ids)} for val, ids in top_items]
-                return stats
-    except Exception as e:
-        (
-            logger.error(f"❌ Erreur statistiques index: {e}")
+        # Si top_k non fourni, calculer depuis intent.depth
+        if top_k is None:
+            if intent.depth == "high":
+                top_k = 8
+            elif intent.depth == "medium":
+                top_k = 4
+            else:
+                top_k = 2
+
+        # Construire une requête textuelle (ou utiliser un embedder externe pour query_embeddings)
+        query_text = ModelFactory.build_query(intent)
+
+        # Appel à ChromaDB
+        results = self.collection.query(
+            query_texts=[query_text],  # Chroma attend une liste
+            n_results=top_k
         )
-    return {'error': str(e)}
+
+        # Résultats contiennent typiquement :
+        # results["documents"], results["metadatas"] etc.
+        return results
+
+    def get_index_stats(self) -> Dict[str, Any]:
+        """Retourne les statistiques de l'index"""
+        try:
+            stats = {}
+            for key in self._index.keys():
+                index_dict = self._index[key]
+                if isinstance(index_dict, defaultdict):
+                    index_dict = dict(index_dict)
+                    stats[f'{key}_count'] = len(index_dict)
+                    total_ids = sum(len(ids) for ids in index_dict.values())
+                    stats[f'{key}_total_ids'] = total_ids
+                # Top 5 des valeurs les plus fréquentes
+                if index_dict:
+                    top_items = sorted(index_dict.items(), key=lambda x: len(x[1]), reverse=True)[:5]
+                    stats[f'{key}_top_5'] = [{'value': val, 'count': len(ids)} for val, ids in top_items]
+                    return stats
+        except Exception as e:
+            (
+                logger.error(f"❌ Erreur statistiques index: {e}")
+            )
+        return {'error': str(e)}

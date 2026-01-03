@@ -6,6 +6,16 @@ from typing import List, Dict, Any, Optional
 
 @dataclass
 class ProjectStructure:
+    project_name: str
+    modules: List[str]
+    files: List[str]
+    patterns_identified: List[str]
+    architecture_overview: str
+    components: Dict[str, Any]
+    dependencies: List[str]
+    created_at: str
+    last_analysis_at: str
+    extra_metadata: Dict[str, Any]
     """
     Représente la structure complète d'un projet pour l'analyse et la génération de documentation.
     Utilisé par les agents et le RuleGenerator.

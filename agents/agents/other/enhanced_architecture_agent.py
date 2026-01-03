@@ -4,6 +4,7 @@ import re
 from typing import Dict, Any, List, Optional
 
 from agents.base_agent import BaseAgent
+from vector.vector_store import VectorStore
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +16,7 @@ class EnhancedArchitectureAgent(BaseAgent):
         super().__init__(config, 'enhanced_architecture_agent')
         self.analysis_depth = config.get('analysis', {}).get('depth', 'detailed')
 
-    def analyze(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def analyze(self, context: Dict[str, Any], vector_store: VectorStore) -> Dict[str, Any]:
         """Analyse approfondie de l'architecture avec extraction de descriptions"""
         logger.info(f"🔍 Début analyse approfondie par {self.agent_name}")
 

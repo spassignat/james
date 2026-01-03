@@ -2,6 +2,7 @@ import logging
 from typing import Dict, Any, List
 
 from agents.base_agent import BaseAgent
+from vector.vector_store import VectorStore
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +12,7 @@ class RulesAgent(BaseAgent):
         # CORRECTION: Appel correct au parent
         super().__init__(config, 'rules_agent')
 
-    def analyze(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def analyze(self, context: Dict[str, Any], vector_store: VectorStore) -> Dict[str, Any]:
         """Génère les règles de codage finales"""
         logger.info(f"📋 Début génération de règles par {self.agent_name}")
 
