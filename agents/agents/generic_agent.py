@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import Dict, Any
 
 from agents.base_agent import BaseAgent
 from models.analysis_context import AnalysisContext
