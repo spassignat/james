@@ -14,6 +14,8 @@ class AnalysisResult:
     # Identification
     language: str
     file_path: Path
+    file_part: List[str]
+    file_name: str
 
     # Résultats principaux
     chunks: List[CodeChunk]
@@ -24,3 +26,11 @@ class AnalysisResult:
 
     # Diagnostics
     errors: List[str]
+
+    def __init__(self, language: str):
+        super().__init__()
+        imports = []
+        symbols = []
+        errors = []
+        chunks = []
+        self.language = language

@@ -1,4 +1,3 @@
-from pathlib import Path
 import re
 from typing import List
 
@@ -8,55 +7,70 @@ from parsers.code_chunk import CodeChunk
 
 
 class SQLAnalyzer(Analyzer):
-    language = "sql"
 
-    STATEMENT_RE = re.compile(
-        r"(SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER)\b",
-        re.IGNORECASE,
-    )
-    TABLE_RE = re.compile(r"\bFROM\s+([a-zA-Z0-9_]+)", re.IGNORECASE)
+    def __init__(self):
+        super().__init__("sql")
+        # Expressions régulières pour SQL
+        self.CREATE_TABLE_RE = re.compile(r'CREATE\s+TABLE\s+(\w+)', re.IGNORECASE)
+        self.CREATE_VIEW_RE = re.compile(r'CREATE\s+VIEW\s+(\w+)', re.IGNORECASE)
+        self.SELECT_RE = re.compile(r'SELECT\s+.*?\s+FROM\s+(\w+)', re.IGNORECASE)
+        self.INSERT_RE = re.compile(r'INSERT\s+INTO\s+(\w+)', re.IGNORECASE)
+        self.UPDATE_RE = re.compile(r'UPDATE\s+(\w+)', re.IGNORECASE)
+        self.DELETE_RE = re.compile(r'DELETE\s+FROM\s+(\w+)', re.IGNORECASE)
 
-    def analyze(self, path: Path, content: str) -> AnalysisResult:
-        chunks: List[CodeChunk] = []
-        imports: List[str] = []
-        symbols: List[str] = []
-        errors: List[str] = []
+    def analyze_content(self, content: str, file_path: str) -> AnalysisResult:
+        result = AnalysisResult(language=self.language)
+        lines = content.splitlines()
 
-        statements = content.split(";")
-
-        for idx, stmt in enumerate(statements, start=1):
-            stmt = stmt.strip()
-            if not stmt:
-                continue
-
-            kind_match = self.STATEMENT_RE.search(stmt)
-            name = kind_match.group(1).upper() if kind_match else f"statement_{idx}"
-
-            for table in self.TABLE_RE.findall(stmt):
-                symbols.append(table)
-
-            start_line = content[: content.find(stmt)].count("\n") + 1
-            end_line = start_line + stmt.count("\n")
-
-            chunks.append(
-                CodeChunk(
-                    language=self.language,
-                    name=name,
-                    content=stmt,
-                    file_path=str(path),
-                    start_line=start_line,
-                    end_line=end_line,
+        for idx, line in enumerate(lines, start=1):
+            # CREATE TABLE
+            if match := self.CREATE_TABLE_RE.search(line):
+                table_name = match.group(1)
+                result.symbols.append(table_name)
+                result.chunks.append(
+                    CodeChunk(
+                        language=self.language,
+                        name=table_name,
+                        content=line.strip()[:100],
+                        file_path=file_path,
+                        start_line=idx,
+                        end_line=idx,
+                    )
                 )
-            )
 
-        if not chunks:
-            errors.append("No SQL statements detected")
+            # CREATE VIEW
+            if match := self.CREATE_VIEW_RE.search(line):
+                view_name = match.group(1)
+                result.symbols.append(view_name)
+                result.chunks.append(
+                    CodeChunk(
+                        language=self.language,
+                        name=view_name,
+                        content=line.strip()[:100],
+                        file_path=file_path,
+                        start_line=idx,
+                        end_line=idx,
+                    )
+                )
 
-        return AnalysisResult(
-            language=self.language,
-            file_path=path,
-            chunks=chunks,
-            imports=imports,
-            symbols=list(set(symbols)),
-            errors=errors,
-        )
+            # SELECT (tables sources)
+            if match := self.SELECT_RE.search(line):
+                table_name = match.group(1)
+                result.symbols.append(table_name)
+
+            # INSERT INTO
+            if match := self.INSERT_RE.search(line):
+                table_name = match.group(1)
+                result.symbols.append(table_name)
+
+            # UPDATE
+            if match := self.UPDATE_RE.search(line):
+                table_name = match.group(1)
+                result.symbols.append(table_name)
+
+            # DELETE FROM
+            if match := self.DELETE_RE.search(line):
+                table_name = match.group(1)
+                result.symbols.append(table_name)
+
+        return result

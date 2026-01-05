@@ -1,84 +1,60 @@
-from pathlib import Path
 import re
 from typing import List
 
-from parsers.parsers.analyzer import Analyzer
-from parsers.parsers.analysis_result import AnalysisResult
-from model.models.code_chunk import CodeChunk
+from parsers.analysis_result import AnalysisResult
+from parsers.analyzer import Analyzer
+from parsers.code_chunk import CodeChunk
 
 
 class HTMLAnalyzer(Analyzer):
-    language = "html"
 
-    BLOCK_RE = re.compile(
-        r"<(script|style|template)(.*?)>(.*?)</\1>",
-        re.DOTALL | re.IGNORECASE,
-        )
+    def __init__(self):
+        super().__init__("html")
+        # Expressions régulières pour HTML
+        self.TAG_RE = re.compile(r'<(\w+)[^>]*>')
+        self.CLASS_RE = re.compile(r'class\s*=\s*["\']([^"\']+)["\']')
+        self.ID_RE = re.compile(r'id\s*=\s*["\']([^"\']+)["\']')
+        self.SCRIPT_RE = re.compile(r'<script[^>]*src\s*=\s*["\']([^"\']+)["\']')
+        self.LINK_RE = re.compile(r'<link[^>]*href\s*=\s*["\']([^"\']+)["\']')
 
-    SCRIPT_SRC_RE = re.compile(
-        r"<script[^>]*src=['\"]([^'\"]+)['\"]",
-        re.IGNORECASE,
-    )
+    def analyze_content(self, content: str, file_path: str) -> AnalysisResult:
+        result = AnalysisResult(language=self.language)
+        lines = content.splitlines()
 
-    CSS_LINK_RE = re.compile(
-        r"<link[^>]*rel=['\"]stylesheet['\"][^>]*href=['\"]([^'\"]+)['\"]",
-        re.IGNORECASE,
-    )
+        for idx, line in enumerate(lines, start=1):
+            # Scripts et liens externes
+            if match := self.SCRIPT_RE.search(line):
+                result.imports.append(match.group(1))
 
-    TAG_RE = re.compile(r"<([a-zA-Z0-9\-]+)")
+            if match := self.LINK_RE.search(line):
+                result.imports.append(match.group(1))
 
-    def analyze(self, path: Path, content: str) -> AnalysisResult:
-        chunks: List[CodeChunk] = []
-        imports: List[str] = []
-        symbols: List[str] = []
-        errors: List[str] = []
+            # Balises HTML
+            for match in self.TAG_RE.finditer(line):
+                tag = match.group(1)
+                result.symbols.append(tag)
 
-        # Imports JS
-        imports.extend(self.SCRIPT_SRC_RE.findall(content))
+                # Créer un chunk pour les balises importantes
+                if tag in ['div', 'span', 'section', 'article', 'header', 'footer',
+                           'nav', 'main', 'aside', 'form', 'input', 'button']:
+                    result.chunks.append(
+                        CodeChunk(
+                            language=self.language,
+                            name=tag,
+                            content=line.strip(),
+                            file_path=file_path,
+                            start_line=idx,
+                            end_line=idx,
+                        )
+                    )
 
-        # Imports CSS
-        imports.extend(self.CSS_LINK_RE.findall(content))
+            # Classes et IDs
+            for class_match in self.CLASS_RE.findall(line):
+                classes = class_match.split()
+                for cls in classes:
+                    result.symbols.append(f".{cls}")
 
-        # Tags HTML (top-level symbols)
-        symbols.extend(set(self.TAG_RE.findall(content)))
+            for id_match in self.ID_RE.findall(line):
+                result.symbols.append(f"#{id_match}")
 
-        # Blocks <script>, <style>, <template>
-        for match in self.BLOCK_RE.finditer(content):
-            block_type = match.group(1).lower()
-            block_content = match.group(3).strip()
-
-            start_line = content[: match.start()].count("\n") + 1
-            end_line = start_line + block_content.count("\n")
-
-            chunks.append(
-                CodeChunk(
-                    language=self.language,
-                    name=f"html_{block_type}",
-                    content=block_content,
-                    file_path=path,
-                    start_line=start_line,
-                    end_line=end_line,
-                )
-            )
-
-        # Fallback : tout le document
-        if not chunks:
-            chunks.append(
-                CodeChunk(
-                    language=self.language,
-                    name="html_document",
-                    content=content,
-                    file_path=path,
-                    start_line=1,
-                    end_line=content.count("\n") + 1,
-                )
-            )
-
-        return AnalysisResult(
-            language=self.language,
-            file_path=path,
-            chunks=chunks,
-            imports=imports,
-            symbols=symbols,
-            errors=errors,
-        )
+        return result

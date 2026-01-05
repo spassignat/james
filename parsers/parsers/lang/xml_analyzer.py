@@ -1,5 +1,4 @@
-from pathlib import Path
-import xml.etree.ElementTree as ET
+import re
 from typing import List
 
 from parsers.analysis_result import AnalysisResult
@@ -8,48 +7,61 @@ from parsers.code_chunk import CodeChunk
 
 
 class XMLAnalyzer(Analyzer):
-    language = "xml"
 
-    def analyze(self, path: Path, content: str) -> AnalysisResult:
-        chunks: List[CodeChunk] = []
-        imports: List[str] = []
-        symbols: List[str] = []
-        errors: List[str] = []
+    def __init__(self):
+        super().__init__("xml")
+        # Expressions régulières pour XML
+        self.ELEMENT_RE = re.compile(r'<(\w+)[^>]*>')
+        self.CLOSING_ELEMENT_RE = re.compile(r'</(\w+)>')
+        self.ATTRIBUTE_RE = re.compile(r'(\w+)\s*=\s*["\'][^"\']*["\']')
+        self.ROOT_ELEMENT_RE = re.compile(r'<\?xml[^?>]*\?>\s*<(\w+)')
 
-        try:
-            root = ET.fromstring(content)
-        except ET.ParseError as e:
-            errors.append(str(e))
-            return AnalysisResult(
-                language=self.language,
-                file_path=path,
-                chunks=[],
-                imports=[],
-                symbols=[],
-                errors=errors,
+    def analyze_content(self, content: str, file_path: str) -> AnalysisResult:
+        result = AnalysisResult(language=self.language)
+        lines = content.splitlines()
+
+        # Trouver l'élément racine
+        if match := self.ROOT_ELEMENT_RE.search(content):
+            root_element = match.group(1)
+            result.symbols.append(root_element)
+            result.chunks.append(
+                CodeChunk(
+                    language=self.language,
+                    name=root_element,
+                    content=f"Root element: {root_element}",
+                    file_path=file_path,
+                    start_line=1,
+                    end_line=1,
+                )
             )
 
-        symbols.append(root.tag)
+        for idx, line in enumerate(lines, start=1):
+            # Éléments XML
+            for match in self.ELEMENT_RE.finditer(line):
+                element = match.group(1)
 
-        start_line = 1
-        end_line = content.count("\n") + 1
+                # Ignorer les déclarations XML
+                if element not in ['?xml', '!DOCTYPE', '!ENTITY']:
+                    result.symbols.append(element)
 
-        chunks.append(
-            CodeChunk(
-                language=self.language,
-                name=root.tag,
-                content=content,
-                file_path=str(path),
-                start_line=start_line,
-                end_line=end_line,
-            )
-        )
+                    # Créer un chunk pour les éléments importants
+                    if any(important in element.lower() for important in
+                           ['bean', 'component', 'service', 'controller', 'repository',
+                            'config', 'property', 'setting', 'element', 'node']):
+                        result.chunks.append(
+                            CodeChunk(
+                                language=self.language,
+                                name=element,
+                                content=line.strip()[:100],
+                                file_path=file_path,
+                                start_line=idx,
+                                end_line=idx,
+                            )
+                        )
 
-        return AnalysisResult(
-            language=self.language,
-            file_path=path,
-            chunks=chunks,
-            imports=imports,
-            symbols=symbols,
-            errors=errors,
-        )
+            # Attributs
+            for match in self.ATTRIBUTE_RE.finditer(line):
+                attribute = match.group(1)
+                result.symbols.append(attribute)
+
+        return result

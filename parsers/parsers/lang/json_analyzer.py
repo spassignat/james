@@ -1,6 +1,4 @@
-from pathlib import Path
 import json
-from typing import List
 
 from parsers.analysis_result import AnalysisResult
 from parsers.analyzer import Analyzer
@@ -8,46 +6,39 @@ from parsers.code_chunk import CodeChunk
 
 
 class JSONAnalyzer(Analyzer):
-    language = "json"
 
-    def analyze(self, path: Path, content: str) -> AnalysisResult:
-        chunks: List[CodeChunk] = []
-        imports: List[str] = []
-        symbols: List[str] = []
-        errors: List[str] = []
+    def __init__(self):
+        super().__init__("json")
+
+    def analyze_content(self, content: str, file_path: str) -> AnalysisResult:
+        result = AnalysisResult(language=self.language)
 
         try:
+            # Parser le JSON
             data = json.loads(content)
-        except json.JSONDecodeError as e:
-            errors.append(str(e))
-            return AnalysisResult(
-                language=self.language,
-                file_path=path,
-                chunks=[],
-                imports=[],
-                symbols=[],
-                errors=errors,
-            )
 
-        if isinstance(data, dict):
-            symbols.extend(data.keys())
+            # Si c'est un objet, prendre ses clés comme symboles
+            if isinstance(data, dict):
+                for key in data.keys():
+                    result.symbols.append(key)
 
-        chunks.append(
-            CodeChunk(
-                language=self.language,
-                name="json_document",
-                content=content,
-                file_path=str(path),
-                start_line=1,
-                end_line=content.count("\n") + 1,
-            )
-        )
+                    # Créer un chunk simple pour chaque clé
+                    result.chunks.append(
+                        CodeChunk(
+                            language=self.language,
+                            name=key,
+                            content=f"{key}",
+                            file_path=file_path,
+                            start_line=1,
+                            end_line=1
+                        )
+                    )
 
-        return AnalysisResult(
-            language=self.language,
-            file_path=path,
-            chunks=chunks,
-            imports=imports,
-            symbols=symbols,
-            errors=errors,
-        )
+            # Marquer comme valide
+            result.is_valid = True
+
+        except json.JSONDecodeError:
+            # JSON invalide - pas de chunks
+            result.is_valid = False
+
+        return result

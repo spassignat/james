@@ -1,64 +1,52 @@
-from pathlib import Path
 import re
 from typing import List
 
-from parsers.parsers.analyzer import Analyzer
-from parsers.parsers.analysis_result import AnalysisResult
-from model.models.code_chunk import CodeChunk
+from parsers.analysis_result import AnalysisResult
+from parsers.analyzer import Analyzer
+from parsers.code_chunk import CodeChunk
 
 
 class CSSAnalyzer(Analyzer):
-    language = "css"
 
-    IMPORT_RE = re.compile(r"@import\s+['\"]([^'\"]+)['\"]")
-    RULE_RE = re.compile(r"([^{]+)\{([^}]+)\}", re.DOTALL)
+    def __init__(self):
+        super().__init__("css")
+        # Expressions régulières pour CSS
+        self.SELECTOR_RE = re.compile(r'([^{]+)\s*{')
+        self.CLASS_RE = re.compile(r'\.([\w-]+)')
+        self.ID_RE = re.compile(r'#([\w-]+)')
+        self.IMPORT_RE = re.compile(r'@import\s+["\']([^"\']+)["\']')
 
-    def analyze(self, path: Path, content: str) -> AnalysisResult:
-        chunks: List[CodeChunk] = []
-        imports: List[str] = []
-        symbols: List[str] = []
-        errors: List[str] = []
+    def analyze_content(self, content: str, file_path: str) -> AnalysisResult:
+        result = AnalysisResult(language=self.language)
+        lines = content.splitlines()
 
-        imports.extend(self.IMPORT_RE.findall(content))
+        for idx, line in enumerate(lines, start=1):
+            # @import
+            if match := self.IMPORT_RE.search(line):
+                result.imports.append(match.group(1))
 
-        for match in self.RULE_RE.finditer(content):
-            selector = match.group(1).strip()
-            body = match.group(2).strip()
+            # Sélecteurs CSS
+            if match := self.SELECTOR_RE.search(line):
+                selector = match.group(1).strip()
+                result.symbols.append(selector)
 
-            start_line = content[: match.start()].count("\n") + 1
-            end_line = start_line + body.count("\n")
+                # Classes et IDs dans le sélecteur
+                for class_match in self.CLASS_RE.findall(selector):
+                    result.symbols.append(f".{class_match}")
 
-            symbols.append(selector)
+                for id_match in self.ID_RE.findall(selector):
+                    result.symbols.append(f"#{id_match}")
 
-            chunks.append(
-                CodeChunk(
-                    language=self.language,
-                    name=selector,
-                    content=f"{selector} {{\n{body}\n}}",
-                    file_path=path,
-                    start_line=start_line,
-                    end_line=end_line,
+                # Créer un chunk pour le sélecteur
+                result.chunks.append(
+                    CodeChunk(
+                        language=self.language,
+                        name=selector.split()[0] if selector else "selector",
+                        content=selector,
+                        file_path=file_path,
+                        start_line=idx,
+                        end_line=idx,
+                    )
                 )
-            )
 
-        # Fallback
-        if not chunks:
-            chunks.append(
-                CodeChunk(
-                    language=self.language,
-                    name="css_stylesheet",
-                    content=content,
-                    file_path=path,
-                    start_line=1,
-                    end_line=content.count("\n") + 1,
-                )
-            )
-
-        return AnalysisResult(
-            language=self.language,
-            file_path=path,
-            chunks=chunks,
-            imports=imports,
-            symbols=symbols,
-            errors=errors,
-        )
+        return result

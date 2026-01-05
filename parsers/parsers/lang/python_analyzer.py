@@ -1,5 +1,4 @@
-from pathlib import Path
-import ast
+import re
 from typing import List
 
 from parsers.analysis_result import AnalysisResult
@@ -8,67 +7,55 @@ from parsers.code_chunk import CodeChunk
 
 
 class PythonAnalyzer(Analyzer):
-    language = "python"
 
-    def analyze(self, path: Path, content: str) -> AnalysisResult:
-        chunks: List[CodeChunk] = []
-        imports: List[str] = []
-        symbols: List[str] = []
-        errors: List[str] = []
+    def __init__(self):
+        super().__init__("python")
+        # Expressions régulières pour Python
+        self.FUNCTION_RE = re.compile(r'def\s+(\w+)\s*\(')
+        self.CLASS_RE = re.compile(r'class\s+(\w+)')
+        self.IMPORT_RE = re.compile(r'import\s+([\w\.]+)')
+        self.FROM_IMPORT_RE = re.compile(r'from\s+([\w\.]+)\s+import')
 
-        try:
-            tree = ast.parse(content)
-        except SyntaxError as e:
-            errors.append(str(e))
-            return AnalysisResult(
-                language=self.language,
-                file_path=path,
-                chunks=[],
-                imports=[],
-                symbols=[],
-                errors=errors,
-            )
+    def analyze_content(self, content: str, file_path: str) -> AnalysisResult:
+        result = AnalysisResult(language=self.language)
+        lines = content.splitlines()
 
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Import):
-                for alias in node.names:
-                    imports.append(alias.name)
+        for idx, line in enumerate(lines, start=1):
+            # Imports
+            if match := self.IMPORT_RE.search(line):
+                result.imports.append(match.group(1))
 
-            elif isinstance(node, ast.ImportFrom):
-                if node.module:
-                    imports.append(node.module)
+            if match := self.FROM_IMPORT_RE.search(line):
+                result.imports.append(match.group(1))
 
-            elif isinstance(node, ast.FunctionDef):
-                symbols.append(node.name)
-                chunks.append(
+            # Fonctions
+            if match := self.FUNCTION_RE.search(line):
+                name = match.group(1)
+                result.symbols.append(name)
+                result.chunks.append(
                     CodeChunk(
                         language=self.language,
-                        name=node.name,
-                        content=ast.get_source_segment(content, node) or "",
-                        file_path=str(path),
-                        start_line=node.lineno,
-                        end_line=node.end_lineno or node.lineno,
+                        name=name,
+                        content=line.strip(),
+                        file_path=file_path,
+                        start_line=idx,
+                        end_line=idx,
                     )
                 )
 
-            elif isinstance(node, ast.ClassDef):
-                symbols.append(node.name)
-                chunks.append(
+            # Classes
+            if match := self.CLASS_RE.search(line):
+                name = match.group(1)
+                result.symbols.append(name)
+                result.chunks.append(
                     CodeChunk(
                         language=self.language,
-                        name=node.name,
-                        content=ast.get_source_segment(content, node) or "",
-                        file_path=str(path),
-                        start_line=node.lineno,
-                        end_line=node.end_lineno or node.lineno,
+                        name=name,
+                        content=line.strip(),
+                        file_path=file_path,
+                        start_line=idx,
+                        end_line=idx,
                     )
                 )
 
-        return AnalysisResult(
-            language=self.language,
-            file_path=path,
-            chunks=chunks,
-            imports=imports,
-            symbols=symbols,
-            errors=errors,
-        )
+        return result
