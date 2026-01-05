@@ -1,6 +1,7 @@
 # src/project_analyzer.py
 from typing import List, Dict, Any, Generator
-from config.file_scanner import FileScanner
+
+from file.file_scanner import FileScanner
 from models.project_structure import ProjectStructure
 from pathlib import Path
 import logging
@@ -15,7 +16,7 @@ class ProjectAnalyzer:
 
     def analyze_project_structure(self) -> ProjectStructure:
         """Retourne la structure complète du projet"""
-        files = list(file_info.get('path', '') for file_info in self.scanner.scan_project() if 'path' in file_info)
+        files = list((file_info.path or '') for file_info in self.scanner.scan_project() )
         patterns_identified = self._identify_patterns(files)
         modules = self._identify_modules(files)
 

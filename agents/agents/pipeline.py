@@ -1,10 +1,13 @@
 import logging
+from pathlib import Path
 from typing import List, Type, Dict, Any
 import json
 from datetime import datetime
 
 from agents.architecture_agent import ArchitectureAgent
 from agents.application_agent import ApplicationAgent
+from agents.architecture_agent_v2 import ArchitectureAgentV2
+from agents.documentation_pipeline import DocumentationPipeline
 from agents.functional_agent import FunctionalAgent
 from agents.security_agent import SecurityAgent
 # Ajouter ici d'autres agents si besoin
@@ -28,7 +31,7 @@ class AnalysisPipeline:
 
         # Liste des agents à exécuter
         self.agents: List[Type] = [
-            ArchitectureAgent,
+            ArchitectureAgentV2,
             ApplicationAgent,
             FunctionalAgent,
             SecurityAgent

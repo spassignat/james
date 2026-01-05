@@ -1,17 +1,20 @@
 # src/file_scanner.py
+import logging
 import os
 import re
 from pathlib import Path
 from typing import List, Dict, Generator
-import logging
+
+from file.file_info import FileInfo
 
 logger = logging.getLogger(__name__)
+
 
 class FileScanner:
     def __init__(self, config: Dict):
         self.config = config
 
-    def scan_project(self) -> Generator[Dict, None, None]:
+    def scan_project(self) -> Generator[FileInfo, None, None]:
         """Scanne récursivement le projet et yield les fichiers valides"""
         root_dir = self.config.get('root_directory', '.')
         excluded_dirs = self.config.get('excluded_directories', [])
@@ -30,14 +33,14 @@ class FileScanner:
                 file_path = os.path.join(root, filename)
 
                 if self._is_file_valid(file_path, included_extensions, excluded_files, max_file_size):
-                    yield {
-                        'path': file_path,
-                        'relative_path': os.path.relpath(file_path, root_dir),
-                        'filename': filename,
-                        'extension': Path(file_path).suffix.lower(),
-                        'directory': root,
-                        'size': os.path.getsize(file_path)
-                    }
+                    yield FileInfo(
+                        path=file_path,
+                        relative_path=os.path.relpath(file_path, root_dir),
+                        filename=filename,
+                        extension=Path(file_path).suffix.lower(),
+                        directory=root,
+                        size=os.path.getsize(file_path)
+                    )
 
     def _should_exclude_directory(self, directory: str, excluded_patterns: List[str]) -> bool:
         """Vérifie si un répertoire doit être exclu"""

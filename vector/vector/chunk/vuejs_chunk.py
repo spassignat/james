@@ -3,6 +3,8 @@ import re
 from typing import List, Dict, Any, Optional
 import logging
 
+from file.file_info import FileInfo
+from parsers.analysis_result import AnalysisResult
 from vector.chunk.chunk_strategy import ChunkStrategy
 from vector.chunk.css_chunk import CSSChunkStrategy
 from vector.chunk.html_chunk import HTMLChunkStrategy
@@ -18,7 +20,7 @@ class VueJSChunkStrategy(ChunkStrategy):
         self.html_chunk_strategy = HTMLChunkStrategy(chunk_size, chunk_overlap)
         self.css_chunk_strategy = CSSChunkStrategy(chunk_size, chunk_overlap)
 
-    def create_chunks(self, analysis: Dict[str, Any], file_info: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def create_chunks(self, analysis: AnalysisResult, file_info: FileInfo) -> List[Dict[str, Any]]:
         chunks = []
 
         # Détection du type d'API Vue
@@ -79,14 +81,14 @@ class VueJSChunkStrategy(ChunkStrategy):
         else:
             return 'options'  # Par défaut pour Vue 2
 
-    def _create_template_chunks(self, analysis: Dict, file_info: Dict, api_type: str) -> List[Dict[str, Any]]:
+    def _create_template_chunks(self, analysis: Dict, file_info: FileInfo, api_type: str) -> List[Dict[str, Any]]:
         """Crée des chunks pour le template avec délégation HTML"""
         template_analysis = analysis.get('template_analysis', {})
         chunks = []
 
         # Chunk principal template
-        content = f"VUE TEMPLATE - {api_type.upper()} API: {file_info['filename']}\n"
-        content += f"FICHIER: {file_info['relative_path']}\n"
+        content = f"VUE TEMPLATE - {api_type.upper()} API: {file_info.filename}\n"
+        content += f"FICHIER: {file_info.relative_path}\n"
         content += f"TYPE API: {api_type}\n"
 
         # CORRECTION : Gestion correcte des éléments (peut être dict ou list)
@@ -120,7 +122,7 @@ class VueJSChunkStrategy(ChunkStrategy):
             'content': content,
             'type': 'vue_template_overview',
             'metadata': {
-                'file_path': file_info['path'],
+                'file_path': file_info.path,
                 'api_type': api_type,
                 'element_count': self._get_element_count(template_analysis),
                 'has_forms': template_analysis.get('has_forms', False)
@@ -147,14 +149,14 @@ class VueJSChunkStrategy(ChunkStrategy):
         else:
             return 0
 
-    def _create_script_chunks(self, analysis: Dict, file_info: Dict, api_type: str) -> List[Dict[str, Any]]:
+    def _create_script_chunks(self, analysis: Dict, file_info: FileInfo, api_type: str) -> List[Dict[str, Any]]:
         """Crée des chunks pour le script selon le type d'API"""
         script_analysis = analysis.get('script_analysis', {})
         chunks = []
 
         # Chunk principal script
-        content = f"VUE SCRIPT - {api_type.upper()} API: {file_info['filename']}\n"
-        content += f"FICHIER: {file_info['relative_path']}\n"
+        content = f"VUE SCRIPT - {api_type.upper()} API: {file_info.filename}\n"
+        content += f"FICHIER: {file_info.relative_path}\n"
         content += f"VERSION: {analysis.get('vue_version', 'unknown')}\n"
         content += f"TYPE API: {api_type}\n"
 
@@ -162,7 +164,7 @@ class VueJSChunkStrategy(ChunkStrategy):
             'content': content,
             'type': f'vue_script_{api_type}_overview',
             'metadata': {
-                'file_path': file_info['path'],
+                'file_path': file_info.path,
                 'vue_version': analysis.get('vue_version'),
                 'api_type': api_type
             }
@@ -202,15 +204,15 @@ class VueJSChunkStrategy(ChunkStrategy):
 
         return normalized
 
-    def _create_composition_api_chunks(self, analysis: Dict, file_info: Dict, script_analysis: Dict) -> List[Dict[str, Any]]:
+    def _create_composition_api_chunks(self, analysis: Dict, file_info: FileInfo, script_analysis: Dict) -> List[Dict[str, Any]]:
         """Crée des chunks spécifiques à Composition API"""
         chunks = []
         components = analysis.get('components', [])
 
         for component in components:
             if component.get('type') == 'composition_api':
-                content = f"COMPOSITION API - COMPOSANT: {file_info['filename']}\n"
-                content += f"FICHIER: {file_info['relative_path']}\n"
+                content = f"COMPOSITION API - COMPOSANT: {file_info.filename}\n"
+                content += f"FICHIER: {file_info.relative_path}\n"
 
                 features = component.get('features', {})
 
@@ -232,7 +234,7 @@ class VueJSChunkStrategy(ChunkStrategy):
                     'content': content,
                     'type': 'vue_composition_api',
                     'metadata': {
-                        'file_path': file_info['path'],
+                        'file_path': file_info.path,
                         'refs_count': features.get('refs', 0),
                         'reactives_count': features.get('reactives', 0),
                         'computed_count': features.get('computed', 0),
@@ -242,15 +244,15 @@ class VueJSChunkStrategy(ChunkStrategy):
 
         return chunks
 
-    def _create_options_api_chunks(self, analysis: Dict, file_info: Dict, script_analysis: Dict) -> List[Dict[str, Any]]:
+    def _create_options_api_chunks(self, analysis: Dict, file_info: FileInfo, script_analysis: Dict) -> List[Dict[str, Any]]:
         """Crée des chunks spécifiques à Options API"""
         chunks = []
         components = analysis.get('components', [])
 
         for component in components:
             if component.get('type') == 'options_api':
-                content = f"OPTIONS API - COMPOSANT: {file_info['filename']}\n"
-                content += f"FICHIER: {file_info['relative_path']}\n"
+                content = f"OPTIONS API - COMPOSANT: {file_info.filename}\n"
+                content += f"FICHIER: {file_info.relative_path}\n"
 
                 features = component.get('features', {})
 
@@ -276,7 +278,7 @@ class VueJSChunkStrategy(ChunkStrategy):
                     'content': content,
                     'type': 'vue_options_api',
                     'metadata': {
-                        'file_path': file_info['path'],
+                        'file_path': file_info.path,
                         'sections': sections,
                         'has_data': features.get('data', False),
                         'has_methods': features.get('methods', False),
@@ -286,14 +288,14 @@ class VueJSChunkStrategy(ChunkStrategy):
 
         return chunks
 
-    def _create_style_chunks(self, analysis: Dict, file_info: Dict) -> List[Dict[str, Any]]:
+    def _create_style_chunks(self, analysis: Dict, file_info: FileInfo) -> List[Dict[str, Any]]:
         """Crée des chunks pour les styles avec délégation CSS"""
         style_analysis = analysis.get('style_analysis', {})
         chunks = []
 
         # Chunk principal style
-        content = f"VUE STYLES: {file_info['filename']}\n"
-        content += f"FICHIER: {file_info['relative_path']}\n"
+        content = f"VUE STYLES: {file_info.filename}\n"
+        content += f"FICHIER: {file_info.relative_path}\n"
 
         if style_analysis.get('preprocessors'):
             content += f"PRÉPROCESSEUR: {style_analysis.get('preprocessors')}\n"
@@ -305,7 +307,7 @@ class VueJSChunkStrategy(ChunkStrategy):
             'content': content,
             'type': 'vue_style_overview',
             'metadata': {
-                'file_path': file_info['path'],
+                'file_path': file_info.path,
                 'scoped': style_analysis.get('scoped', False),
                 'preprocessor': style_analysis.get('preprocessors')
             }
@@ -333,7 +335,7 @@ class VueJSChunkStrategy(ChunkStrategy):
 
         return normalized
 
-    def _create_component_chunks(self, analysis: Dict, file_info: Dict, api_type: str) -> List[Dict[str, Any]]:
+    def _create_component_chunks(self, analysis: Dict, file_info: FileInfo, api_type: str) -> List[Dict[str, Any]]:
         """Crée des chunks pour les composables et utilitaires"""
         chunks = []
 
@@ -342,14 +344,14 @@ class VueJSChunkStrategy(ChunkStrategy):
         if composables and isinstance(composables, list):
             for composable in composables[:5]:  # Limiter aux 5 premiers
                 content = f"COMPOSABLE VUE: {composable}\n"
-                content += f"FICHIER: {file_info['relative_path']}\n"
+                content += f"FICHIER: {file_info.relative_path}\n"
                 content += f"TYPE API: {api_type}\n"
 
                 chunks.append({
                     'content': content,
                     'type': 'vue_composable',
                     'metadata': {
-                        'file_path': file_info['path'],
+                        'file_path': file_info.path,
                         'composable_name': composable,
                         'api_type': api_type
                     }
@@ -360,26 +362,26 @@ class VueJSChunkStrategy(ChunkStrategy):
         if directives and isinstance(directives, list):
             for directive in directives[:3]:
                 content = f"DIRECTIVE VUE: {directive}\n"
-                content += f"FICHIER: {file_info['relative_path']}\n"
+                content += f"FICHIER: {file_info.relative_path}\n"
 
                 chunks.append({
                     'content': content,
                     'type': 'vue_directive',
                     'metadata': {
-                        'file_path': file_info['path'],
+                        'file_path': file_info.path,
                         'directive_name': directive
                     }
                 })
 
         return chunks
 
-    def _create_global_component_chunks(self, analysis: Dict, file_info: Dict, api_type: str) -> List[Dict[str, Any]]:
+    def _create_global_component_chunks(self, analysis: Dict, file_info: FileInfo, api_type: str) -> List[Dict[str, Any]]:
         """Crée des chunks pour les données globales du composant"""
         chunks = []
 
         # Chunk métadonnées du composant
-        content = f"COMPOSANT VUE GLOBAL: {file_info['filename']}\n"
-        content += f"FICHIER: {file_info['relative_path']}\n"
+        content = f"COMPOSANT VUE GLOBAL: {file_info.filename}\n"
+        content += f"FICHIER: {file_info.relative_path}\n"
         content += f"VERSION: {analysis.get('vue_version', 'unknown')}\n"
         content += f"TYPE API: {api_type}\n"
 
@@ -398,7 +400,7 @@ class VueJSChunkStrategy(ChunkStrategy):
             'content': content,
             'type': 'vue_component_global',
             'metadata': {
-                'file_path': file_info['path'],
+                'file_path': file_info.path,
                 'vue_version': analysis.get('vue_version'),
                 'api_type': api_type,
                 'has_template': sections.get('has_template', False),

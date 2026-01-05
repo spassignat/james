@@ -1,4 +1,5 @@
 # src/main_analysis.py
+import json
 import logging
 from config.config_loader import ConfigLoader
 from project_analyzer import ProjectAnalyzer
@@ -52,6 +53,8 @@ def main():
         # Étape 5: Sauvegarde ou export des résultats
         logger.info("💾 Sauvegarde des résultats...")
         vector_store.persist_index()  # sauvegarde de l'index et persistance
+        with open('data.json', 'w', encoding='utf-8') as f:
+            json.dump(analysis_results, f, ensure_ascii=False, indent=4)
 
         # Étape 6: Résumé
         stats = {

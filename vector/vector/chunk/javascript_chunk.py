@@ -2,13 +2,15 @@
 import logging
 from typing import List, Dict, Any
 
+from file.file_info import FileInfo
+from parsers.analysis_result import AnalysisResult
 from vector.chunk.chunk_strategy import ChunkStrategy
 
 logger = logging.getLogger(__name__)
 
 
 class JavaScriptChunkStrategy(ChunkStrategy):
-    def create_chunks(self, analysis: Dict[str, Any], file_info: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def create_chunks(self, analysis: AnalysisResult, file_info: FileInfo) -> List[Dict[str, Any]]:
         chunks = []
 
         # Chunk imports (TOUJOURS créer, même si vide)
@@ -32,10 +34,10 @@ class JavaScriptChunkStrategy(ChunkStrategy):
 
         return chunks
 
-    def _create_global_chunk(self, analysis: Dict, file_info: Dict) -> Dict[str, Any]:
+    def _create_global_chunk(self, analysis: Dict, file_info: FileInfo) -> Dict[str, Any]:
         """Crée un chunk pour le contenu global du fichier"""
-        content = f"CONTENU GLOBAL JAVASCRIPT: {file_info['filename']}\n"
-        content += f"FICHIER: {file_info['relative_path']}\n"
+        content = f"CONTENU GLOBAL JAVASCRIPT: {file_info.filename}\n"
+        content += f"FICHIER: {file_info.relative_path}\n"
 
         # Ajouter des informations sur le type de module
         module_type = analysis.get('analysis', {}).get('module_type', 'unknown')
@@ -52,19 +54,19 @@ class JavaScriptChunkStrategy(ChunkStrategy):
             'content': content,
             'type': 'js_global',
             'metadata': {
-                'file_path': file_info['path'],
+                'file_path': file_info.path,
                 'module_type': module_type,
                 'has_exports': bool(exports),
                 'export_count': len(exports)
             }
         }
 
-    def _create_imports_chunk(self, analysis: Dict, file_info: Dict) -> Dict[str, Any]:
+    def _create_imports_chunk(self, analysis: AnalysisResult, file_info: FileInfo) -> Dict[str, Any]:
         """Crée un chunk pour les imports"""
-        content = f"IMPORTS JAVASCRIPT: {file_info['filename']}\n"
-        content += f"FICHIER: {file_info['relative_path']}\n"
+        content = f"IMPORTS JAVASCRIPT: {file_info.filename}\n"
+        content += f"FICHIER: {file_info.relative_path}\n"
 
-        imports = analysis.get('imports', [])
+        imports = analysis.imports
         if imports:
             content += "IMPORTATIONS:\n"
             for imp in imports[:8]:
@@ -76,16 +78,16 @@ class JavaScriptChunkStrategy(ChunkStrategy):
             'content': content,
             'type': 'js_imports',
             'metadata': {
-                'file_path': file_info['path'],
+                'file_path': file_info.path,
                 'import_count': len(imports),
                 'module_type': analysis.get('analysis', {}).get('module_type', 'unknown')
             }
         }
 
-    def _create_class_chunk(self, class_info: Dict, analysis: Dict, file_info: Dict) -> Dict[str, Any]:
+    def _create_class_chunk(self, class_info: Dict, analysis: Dict, file_info: FileInfo) -> Dict[str, Any]:
         """Crée un chunk pour une classe"""
         content = f"CLASSE JAVASCRIPT: {class_info.get('name', 'Anonymous')}\n"
-        content += f"FICHIER: {file_info['relative_path']}\n"
+        content += f"FICHIER: {file_info.relative_path}\n"
 
         # Méthodes de la classe
         methods = class_info.get('methods', [])
@@ -104,14 +106,14 @@ class JavaScriptChunkStrategy(ChunkStrategy):
             'metadata': {
                 'class_name': class_info.get('name'),
                 'method_count': len(methods),
-                'file_path': file_info['path'],
+                'file_path': file_info.path,
                 'is_component': any(method.startswith('render') for method in methods)
             }
         }
 
-    def _create_function_chunk(self, function: Dict, analysis: Dict, file_info: Dict) -> Dict[str, Any]:
+    def _create_function_chunk(self, function: Dict, analysis: Dict, file_info: FileInfo) -> Dict[str, Any]:
         content = f"FONCTION JS: {function.get('name', 'Anonymous')}\n"
-        content += f"FICHIER: {file_info['relative_path']}\n"
+        content += f"FICHIER: {file_info.relative_path}\n"
         content += f"TYPE: {function.get('type', 'function')}\n"
 
         return {
@@ -120,6 +122,6 @@ class JavaScriptChunkStrategy(ChunkStrategy):
             'metadata': {
                 'function_name': function.get('name'),
                 'function_type': function.get('type'),
-                'file_path': file_info['path']
+                'file_path': file_info.path
             }
         }

@@ -3,6 +3,8 @@ import re
 from typing import List, Dict, Any, Optional
 import logging
 
+from file.file_info import FileInfo
+from parsers.analysis_result import AnalysisResult
 from vector.chunk.generic_chunk import GenericChunkStrategy
 from vector.chunk.java_chunk import JavaChunkStrategy
 from vector.chunk.javascript_chunk import JavaScriptChunkStrategy
@@ -37,7 +39,7 @@ class ChunkStrategyRegistry:
         # Stratégie générique par défaut
         self.default_strategy = GenericChunkStrategy(**self.default_chunk_config)
     
-    def create_chunks(self, file_extension: str, analysis: Dict[str, Any], file_info: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def create_chunks(self, file_extension: str, analysis: AnalysisResult, file_info: FileInfo) -> List[Dict[str, Any]]:
         """Crée des chunks pour un fichier en utilisant la stratégie appropriée"""
         strategy = self.strategies.get(file_extension, self.default_strategy)
         return strategy.create_chunks(analysis, file_info)

@@ -2,13 +2,15 @@
 import logging
 from typing import List, Dict, Any
 
+from file.file_info import FileInfo
+from parsers.analysis_result import AnalysisResult
 from vector.chunk.chunk_strategy import ChunkStrategy
 
 logger = logging.getLogger(__name__)
 
 
 class JavaChunkStrategy(ChunkStrategy):
-    def create_chunks(self, analysis: Dict[str, Any], file_info: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def create_chunks(self, analysis: AnalysisResult, file_info: FileInfo) -> List[Dict[str, Any]]:
         chunks = []
 
         # Chunk 1: Vue d'ensemble de la classe
@@ -29,9 +31,9 @@ class JavaChunkStrategy(ChunkStrategy):
 
         return chunks
 
-    def _create_class_chunk(self, analysis: Dict, class_info: Dict, file_info: Dict) -> Dict[str, Any]:
+    def _create_class_chunk(self, analysis: Dict, class_info: Dict, file_info: FileInfo) -> Dict[str, Any]:
         content = f"CLASSE JAVA: {class_info.get('name', 'Unknown')}\n"
-        content += f"FICHIER: {file_info['relative_path']}\n"
+        content += f"FICHIER: {file_info.relative_path}\n"
         content += f"PAQUET: {analysis.get('package', '')}\n"
 
         if analysis.get('imports'):
@@ -46,14 +48,14 @@ class JavaChunkStrategy(ChunkStrategy):
             'metadata': {
                 'class_name': class_info.get('name'),
                 'package': analysis.get('package'),
-                'file_path': file_info['path']
+                'file_path': file_info.path
             }
         }
 
-    def _create_method_chunk(self, method: Dict, analysis: Dict, file_info: Dict) -> Dict[str, Any]:
+    def _create_method_chunk(self, method: Dict, analysis: Dict, file_info: FileInfo) -> Dict[str, Any]:
         content = f"MÉTHODE JAVA: {method.get('name', 'Unknown')}\n"
         content += f"CLASSE: {analysis.get('classes', [{}])[0].get('name', 'Unknown')}\n"
-        content += f"FICHIER: {file_info['relative_path']}\n"
+        content += f"FICHIER: {file_info.relative_path}\n"
         content += f"VISIBILITÉ: {method.get('visibility', '')}\n"
 
         if method.get('annotations'):
@@ -72,9 +74,9 @@ class JavaChunkStrategy(ChunkStrategy):
             }
         }
 
-    def _create_fields_chunk(self, analysis: Dict, file_info: Dict) -> Dict[str, Any]:
+    def _create_fields_chunk(self, analysis: Dict, file_info: FileInfo) -> Dict[str, Any]:
         content = f"CHAMPS JAVA - CLASSE: {analysis.get('classes', [{}])[0].get('name', 'Unknown')}\n"
-        content += f"FICHIER: {file_info['relative_path']}\n"
+        content += f"FICHIER: {file_info.relative_path}\n"
 
         for field in analysis.get('fields', [])[:5]:  # Limiter aux 5 premiers
             content += f"- {field.get('name')} : {field.get('type')} ({field.get('visibility')})\n"
