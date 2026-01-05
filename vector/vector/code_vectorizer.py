@@ -11,7 +11,6 @@ from sentence_transformers import SentenceTransformer
 from file.file_info import FileInfo
 from file.file_scanner import FileScanner
 from parsers.analyzer import Analyzer
-from parsers.analysis_result import AnalysisResult, AnalysisStatus
 from vector.chunk.registry_chunk import ChunkStrategyRegistry
 from vector.vector_store import VectorStore
 
