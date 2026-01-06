@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import List, Dict, Any, Optional
 
-from models.code_chunk import CodeChunk
 from models.project_structure import ProjectStructure
+from parsers.code_chunk import CodeChunk
 
 
 @dataclass

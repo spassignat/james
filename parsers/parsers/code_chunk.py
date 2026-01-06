@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List
+from typing import List, Any
+
+import numpy as np
 
 
 @dataclass(slots=True)
@@ -10,6 +12,7 @@ class CodeChunk:
     """
     # Métadonnées générales
     language: str
+    chunk_type: np.ndarray[tuple[Any, ...], np.dtype[Any]]
     name: str
     # Contenu
     content: str

@@ -1,10 +1,10 @@
 import logging
 from typing import List
 
+from agents.analysis_context import AnalysisContext
 from agents.base_agent import BaseAgent
-from models.analysis_context import AnalysisContext
-from models.code_chunk import CodeChunk
 from models.project_structure import ProjectStructure
+from parsers.code_chunk import CodeChunk
 
 logger = logging.getLogger(__name__)
 
@@ -31,10 +31,8 @@ class DocumentationAgent(BaseAgent):
         for i, structure in enumerate(analysis_results):
             chunk = CodeChunk(
                 content=f"# Documentation générée pour structure {i}",
-                filename=f"generated_doc_{i}.md",
                 file_path=f"/generated/generated_doc_{i}.md",
                 language="markdown",
-                category="documentation",
                 chunk_type="generated_doc"
             )
             generated_chunks.append(chunk)

@@ -533,12 +533,7 @@ class CodeVectorizer:
             for i in range(0, len(chunk_contents), self.batch_size):
                 batch = chunk_contents[i:i + self.batch_size]
                 try:
-                    batch_embeddings = self.model.encode(
-                        batch,
-                        batch_size=min(len(batch), 32),  # Limiter la taille du batch
-                        show_progress_bar=False,
-                        convert_to_numpy=True
-                    )
+                    batch_embeddings = self.vector_encode(batch)
                     all_embeddings.append(batch_embeddings)
                 except Exception as batch_error:
                     logger.error(f"Erreur vectorisation lot {i}: {batch_error}")
@@ -601,6 +596,15 @@ class CodeVectorizer:
         except Exception as e:
             logger.error(f"Erreur vectorisation pour {file_info.path}: {e}", exc_info=True)
             return None
+
+    def vector_encode(self, batch: list[Any]) -> np.ndarray[tuple[Any, ...], np.dtype[Any]]:
+        batch_embeddings = self.model.encode(
+            batch,
+            batch_size=min(len(batch), 32),  # Limiter la taille du batch
+            show_progress_bar=False,
+            convert_to_numpy=True
+        )
+        return batch_embeddings
 
     def _fallback_file_processing(self, file_info: FileInfo) -> Optional[List[Dict[str, Any]]]:
         """Traitement de fallback pour les fichiers problématiques"""

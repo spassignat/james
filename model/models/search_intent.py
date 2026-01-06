@@ -17,3 +17,4 @@ class SearchIntent:
     ]
     focus: List[str]
     depth: Literal["low", "medium", "high"]
+    encoded_query: str=None

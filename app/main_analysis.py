@@ -1,11 +1,12 @@
 # src/main_analysis.py
 import json
 import logging
+
+from agents.analysis_context import AnalysisContext
 from config.config_loader import ConfigLoader
 from project_analyzer import ProjectAnalyzer
 from vector.vector_store import VectorStore
 from agents.agent_manager import AgentManager
-from models.analysis_context import AnalysisContext
 
 # Configuration du logging
 logging.basicConfig(level=logging.DEBUG)
@@ -53,8 +54,8 @@ def main():
         # Étape 5: Sauvegarde ou export des résultats
         logger.info("💾 Sauvegarde des résultats...")
         vector_store.persist_index()  # sauvegarde de l'index et persistance
-        with open('data.json', 'w', encoding='utf-8') as f:
-            json.dump(analysis_results, f, ensure_ascii=False, indent=4)
+        # with open('data.json', 'w', encoding='utf-8') as f:
+        #     json.dump(analysis_results, f, ensure_ascii=False, indent=4)
 
         # Étape 6: Résumé
         stats = {

@@ -691,6 +691,7 @@ class VectorStore:
                 where_filters['language'] = intent.language
 
             # Effectuer la recherche
+
             results = self.collection.query(
                 query_texts=[query_text],
                 n_results=top_k,

@@ -1,7 +1,7 @@
 from typing import Dict, Any
 
+from agents.analysis_context import AnalysisContext
 from agents.base_agent import BaseAgent
-from models.analysis_context import AnalysisContext
 from models.project_structure import ProjectStructure
 from models.search_intent import SearchIntent
 from vector.vector_store import VectorStore

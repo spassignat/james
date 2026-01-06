@@ -1,8 +1,8 @@
 import logging
 from typing import List
 
+from agents.analysis_context import AnalysisContext
 from agents.pipeline import AnalysisPipeline
-from models.analysis_context import AnalysisContext
 from models.project_structure import ProjectStructure
 from vector.vector_store import VectorStore
 

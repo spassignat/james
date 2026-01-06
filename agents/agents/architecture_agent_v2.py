@@ -1,11 +1,14 @@
 from typing import List, Tuple, Dict, Any
 from overrides import overrides
 
+from agents.analysis_context import AnalysisContext
 from agents.base_agent import BaseAgent
 from agents.generic_agent import GenericAgent
-from models.analysis_context import AnalysisContext
 from models.project_structure import ProjectStructure
 from models.search_intent import SearchIntent
+from parsers.analyzer import Analyzer
+from parsers.lang.css_analyzer import CSSAnalyzer
+from vector.code_vectorizer import CodeVectorizer
 from vector.vector_store import VectorStore
 
 ARCHITECTURE_INTENTS: List[SearchIntent] = [
@@ -55,10 +58,13 @@ class ArchitectureAgentV2(GenericAgent):
     ) -> ProjectStructure:
 
         aggregated_chunks: List[Tuple[str, Dict[str, Any]]] = []
+        vectorizer = CodeVectorizer(self.config, CSSAnalyzer())
 
         # 1️⃣ Lancer plusieurs recherches ciblées
         for intent in ARCHITECTURE_INTENTS:
-            results = vector_store.search(intent)
+
+            intent.encoded_query= vectorizer.vector_encode([intent.goal])
+            results = vector_store.search_intent(intent)
             aggregated_chunks.extend(self._extract_chunks(results))
 
         # 2️⃣ Déduplication logique
