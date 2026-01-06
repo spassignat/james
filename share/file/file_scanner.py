@@ -58,6 +58,8 @@ class FileScanner:
             file_size = os.path.getsize(file_path)
             if file_size > max_file_size:
                 return False
+            if file_size == 0:
+                return False
 
             # Vérifier l'extension
             file_extension = Path(file_path).suffix.lower()

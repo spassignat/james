@@ -74,7 +74,7 @@ ollama:
   context_size: 4096
 
 logging:
-  level: "INFO"
+  level: "WARN"
   file: "./vectorization.log"
   format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 

@@ -1,9 +1,9 @@
 import json
 import logging
 import traceback
-from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple
 from collections import defaultdict
+from pathlib import Path
+from typing import List, Dict, Any, Optional
 
 import numpy as np
 from sentence_transformers import SentenceTransformer
@@ -11,7 +11,6 @@ from sentence_transformers import SentenceTransformer
 from file.file_info import FileInfo
 from file.file_scanner import FileScanner
 from parsers.analyzer import Analyzer
-from vector.chunk.registry_chunk import ChunkStrategyRegistry
 from vector.vector_store import VectorStore
 
 logger = logging.getLogger(__name__)
@@ -27,7 +26,6 @@ class CodeVectorizer:
 
         # Initialisation des composants
         self.file_scanner = FileScanner(config.get('project', {}))
-        self.chunk_strategy_registry = ChunkStrategyRegistry(self.vectorization_config)
         self.vector_store = VectorStore(self.vectorization_config)
 
         # Modèle d'embedding
@@ -48,7 +46,8 @@ class CodeVectorizer:
         model_name = self.vectorization_config.get('model_name', 'all-MiniLM-L6-v2')
         try:
             model = SentenceTransformer(model_name)
-            logger.info(f"Modèle d'embedding chargé: {model_name} (dimension: {model.get_sentence_embedding_dimension()})")
+            logger.info(
+                f"Modèle d'embedding chargé: {model_name} (dimension: {model.get_sentence_embedding_dimension()})")
             return model
         except Exception as e:
             logger.error(f"Erreur chargement modèle {model_name}: {e}")
@@ -140,41 +139,24 @@ class CodeVectorizer:
         try:
             # 1. Analyse du fichier
             analysis_result = self.analyzer.analyze_file(file_info.path)
-            result['analysis_status'] = analysis_result.status.value if hasattr(analysis_result, 'status') else 'unknown'
-
-            if analysis_result.status == AnalysisStatus.ERROR:
-                result['error'] = f"Analyseur a échoué: {analysis_result.errors[:1] if analysis_result.errors else 'Unknown error'}"
-                logger.warning(f"Analyse échouée pour {file_info.path}: {result['error']}")
-
-                # Essayer le fallback
-                fallback_chunks = self._fallback_file_processing(file_info)
-                if fallback_chunks:
-                    result['chunks'] = fallback_chunks
-                    result['success'] = True
-                    result['fallback_used'] = True
-                return result
 
             # 2. Création des chunks
-            chunks = self.chunk_strategy_registry.create_chunks(
-                file_info.extension,
-                analysis_result,
-                file_info
-            )
+            chunks = analysis_result.chunks
 
             if not chunks:
-                logger.debug(f"Aucun chunk créé pour: {file_info.path}")
+                logger.warn(f"Aucun chunk créé pour: {file_info.path}")
                 return result
 
             # 3. Normalisation des chunks
             normalized_chunks = self._normalize_chunks(chunks, file_info)
             if not normalized_chunks:
-                logger.debug(f"Aucun chunk normalisé pour: {file_info.path}")
+                logger.warn(f"Aucun chunk normalisé pour: {file_info.path}")
                 return result
 
             # 4. Validation des chunks
             validated_chunks = self._validate_chunks(normalized_chunks)
             if not validated_chunks:
-                logger.debug(f"Aucun chunk valide pour: {file_info.path}")
+                logger.warn(f"Aucun chunk valide pour: {file_info.path}")
                 return result
 
             # 5. Vectorisation et stockage

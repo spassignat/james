@@ -34,11 +34,7 @@ class JSONAnalyzer(Analyzer):
                         )
                     )
 
-            # Marquer comme valide
-            result.is_valid = True
-
         except json.JSONDecodeError:
-            # JSON invalide - pas de chunks
-            result.is_valid = False
+            pass
 
         return result

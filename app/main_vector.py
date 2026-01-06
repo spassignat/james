@@ -8,7 +8,7 @@ import os
 import sys
 
 from config.config_loader import ConfigLoader
-from parsers.multilanguage_analyzer import MultiLanguageAnalyzer
+from parsers.multilanguage_analyzer import MultilanguageAnalyzer
 from vector.code_vectorizer import CodeVectorizer
 
 # Ajouter le chemin src pour les imports
@@ -48,7 +48,7 @@ def main():
         setup_logging(config.get('logging', {}))
 
         # Initialisation avec VOS analyseurs existants
-        analyzer = MultiLanguageAnalyzer(config)
+        analyzer = MultilanguageAnalyzer()
 
         # Vectorisation
         vectorizer = CodeVectorizer(config, analyzer)

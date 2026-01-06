@@ -16,10 +16,10 @@ class AnalysisResult:
     file_path: Path
     file_part: List[str]
     file_name: str
-
+    last_modified: float
+    name_parts: List[str]
     # Résultats principaux
     chunks: List[CodeChunk]
-
     # Informations secondaires
     imports: List[str]
     symbols: List[str]
@@ -28,9 +28,8 @@ class AnalysisResult:
     errors: List[str]
 
     def __init__(self, language: str):
-        super().__init__()
-        imports = []
-        symbols = []
-        errors = []
-        chunks = []
+        self.imports = []
+        self.symbols = []
+        self.errors = []
+        self.chunks = []
         self.language = language

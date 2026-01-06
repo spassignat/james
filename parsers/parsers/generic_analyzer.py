@@ -3,7 +3,6 @@ import logging
 import os
 import re
 import traceback
-from datetime import datetime
 from typing import Dict, Any, List
 
 from parsers.analysis_result import (
@@ -11,6 +10,7 @@ from parsers.analysis_result import (
     CodeElement, FileMetrics
 )
 from parsers.analyzer import Analyzer
+from parsers.code_chunk import CodeChunk
 
 logger = logging.getLogger(__name__)
 
@@ -28,12 +28,8 @@ class GenericAnalyzer(Analyzer):
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
 
-            # Mesurer le temps de traitement
-            start_time = datetime.now()
-
             # Créer le résultat de base
             result = self._create_base_result(file_path)
-            result.analyzer_name = "GenericAnalyzer"
 
             # Analyser le contenu
             analysis = self.analyze_content(content, file_path)
@@ -45,11 +41,6 @@ class GenericAnalyzer(Analyzer):
             # Déterminer le type de fichier si possible
             self._detect_file_type(result, file_path, content)
 
-            # Calculer le temps de traitement
-            result.processing_time_ms = int(
-                (datetime.now() - start_time).total_seconds() * 1000
-            )
-
             return result
 
         except UnicodeDecodeError:
@@ -60,17 +51,14 @@ class GenericAnalyzer(Analyzer):
             logger.error(f"Error analyzing generic file {file_path}: {e}")
             return self._create_error_result(file_path, str(e))
 
-    def analyze_content(self, content: str, file_path: str) -> Dict[str, Any]:
+    def analyze_content(self, content: str, file_path: str) -> AnalysisResult:
         """Analyse du contenu générique (méthode interne)"""
-        return {
-            'content_preview': content[:1000],
-            'content_length': len(content),
-            'line_count': len(content.splitlines()),
-            'encoding_guess': self._guess_encoding(content),
-            'contains_binary': self._contains_binary_data(content),
-            'analysis': self._analyze_generic_content(content, file_path),
-            'detected_patterns': self._detect_patterns(content, file_path)
-        }
+        result = AnalysisResult(self.language)
+        result.chunks = [CodeChunk(self.language, file_path=file_path,
+                                   content=content,
+                                   name=file_path.split('/')[-1],
+                                   start_line=0, end_line=content.count('\n'))]
+        return result
 
     def _analyze_generic_content(self, content: str, file_path: str) -> Dict[str, Any]:
         """Analyse le contenu générique"""
@@ -349,7 +337,6 @@ class GenericAnalyzer(Analyzer):
 
             # Créer un résultat de base
             result = self._create_base_result(file_path)
-            result.analyzer_name = "GenericAnalyzer"
             result.status = AnalysisStatus.PARTIAL
             result.file_type = FileType.UNKNOWN
 

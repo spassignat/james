@@ -1,8 +1,8 @@
+import hashlib
 import json
 import logging
 import pickle
-import hashlib
-import time
+import traceback
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
@@ -10,12 +10,10 @@ from typing import List, Dict, Any, Optional
 
 import chromadb
 import numpy as np
+import time
 from chromadb import Settings, EmbeddingFunction
 from chromadb.utils import embedding_functions
 
-from file.file_info import FileInfo
-from models.code_chunk import CodeChunk
-from models.model_factory import ModelFactory
 from models.search_intent import SearchIntent
 
 logger = logging.getLogger(__name__)
@@ -127,7 +125,7 @@ class VectorStore:
                     loaded_index = pickle.load(f)
 
                 # Restaurer la structure avec defaults
-                index_keys = ['extension', 'chunk_type', 'file_path', 'language',
+                index_keys = ['extension', 'chunk_type', 'file_path', 'language','processed_date',
                               'chunk_size', 'category', 'function_name', 'class_name']
 
                 for key in index_keys:
@@ -376,6 +374,7 @@ class VectorStore:
             logger.debug(f"📝 Chunk {chunk_id} indexé")
 
         except Exception as e:
+            print(traceback.format_exc())
             logger.warning(f"⚠️ Erreur indexation chunk {chunk_id}: {e}")
 
     def _get_size_category(self, size: int) -> str:

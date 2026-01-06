@@ -16,8 +16,7 @@ class JavaAnalyzer(Analyzer):
     """Analyseur de fichiers Java retournant des AnalysisResult"""
 
     def __init__(self):
-        super().__init__()
-        self.file_type = FileType.JAVA
+        super().__init__("java")
 
     def analyze_file(self, file_path: str) -> AnalysisResult:
         """Analyse un fichier Java et retourne un AnalysisResult"""
@@ -25,12 +24,9 @@ class JavaAnalyzer(Analyzer):
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
 
-            # Mesurer le temps de traitement
-            start_time = datetime.now()
 
             # Créer le résultat de base
             result = self._create_base_result(file_path)
-            result.analyzer_name = "JavaAnalyzer"
 
             # Analyser le contenu
             analysis = self.analyze_content(content, file_path)
@@ -39,10 +35,7 @@ class JavaAnalyzer(Analyzer):
             self._update_result_from_analysis(result, analysis)
             result.metrics = self._calculate_java_metrics(content, analysis)
 
-            # Calculer le temps de traitement
-            result.processing_time_ms = int(
-                (datetime.now() - start_time).total_seconds() * 1000
-            )
+
 
             return result
 
@@ -50,7 +43,7 @@ class JavaAnalyzer(Analyzer):
             logger.error(f"Error analyzing Java file {file_path}: {e}")
             return self._create_error_result(file_path, str(e))
 
-    def analyze_content(self, content: str, file_path: str) -> Dict[str, Any]:
+    def analyze_content(self, content: str, file_path: str) -> AnalysisResult:
         """Analyse du contenu Java (méthode interne)"""
         return {
             'package': self._extract_package(content),
