@@ -1,7 +1,6 @@
 # src/documentation/pipeline.py
 import datetime
 import json
-from pathlib import Path
 from typing import Dict, List, Any
 
 from documentation.md__template_generator import TemplateDocumentationGenerator

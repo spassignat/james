@@ -1,8 +1,8 @@
 # src/utils/filename_parser.py
-import re
-from typing import List, Dict, Any, Tuple
-from pathlib import Path
 import logging
+import re
+from pathlib import Path
+from typing import List, Dict, Any
 
 logger = logging.getLogger(__name__)
 

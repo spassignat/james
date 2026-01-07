@@ -1,10 +1,11 @@
 import logging
 from typing import Dict, Any, List
 
-from agents.base_agent import BaseAgent
 from agents.enhanced_architecture_agent import EnhancedArchitectureAgent
 from agents.pattern_agent import PatternAgent
 from agents.rules_agent import RulesAgent
+
+from agents.base_agent import BaseAgent
 from config.config_loader import ConfigLoader
 from project_analyzer import ProjectAnalyzer
 

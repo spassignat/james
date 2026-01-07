@@ -1,10 +1,10 @@
 # src/project_analyzer.py
+import logging
+from pathlib import Path
 from typing import List, Dict, Any, Generator
 
 from file.file_scanner import FileScanner
 from models.project_structure import ProjectStructure
-from pathlib import Path
-import logging
 
 logger = logging.getLogger(__name__)
 

@@ -417,7 +417,7 @@ class VectorStore:
             logger.error(f"❌ Erreur ajout batch à ChromaDB: {e}")
             raise
 
-    def search(self, query_embedding: np.ndarray, top_k: int = 5,
+    def search(self, query_embedding: str, top_k: int = 5,
                threshold: float = 0.5, filters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """
         Recherche des chunks similaires à un embedding donné.
@@ -665,6 +665,15 @@ class VectorStore:
         except Exception as e:
             logger.error(f"❌ Erreur statistiques index: {e}")
             return {'error': str(e)}
+
+    @staticmethod
+    def build_query(intent: SearchIntent) -> str:
+        return f"""
+        Goal: {intent.goal}
+        Domains: {intent.domain}
+        Focus: {', '.join(intent.focus)}
+        Depth: {intent.depth}
+        """
 
     def search_intent(self, intent: SearchIntent, top_k: int = None) -> Dict[str, List]:
         """

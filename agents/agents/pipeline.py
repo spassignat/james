@@ -1,20 +1,19 @@
+import json
 import logging
+from datetime import datetime
 from pathlib import Path
 from typing import List, Type, Dict, Any
-import json
-from datetime import datetime
 
 from agents.analysis_context import AnalysisContext
-from agents.architecture_agent import ArchitectureAgent
 from agents.application_agent import ApplicationAgent
 from agents.architecture_agent_v2 import ArchitectureAgentV2
 from agents.documentation_pipeline import DocumentationPipeline
 from agents.functional_agent import FunctionalAgent
 from agents.security_agent import SecurityAgent
-# Ajouter ici d'autres agents si besoin
-
 from models.project_structure import ProjectStructure
 from vector.vector_store import VectorStore
+
+# Ajouter ici d'autres agents si besoin
 
 # Import du générateur de documentation
 

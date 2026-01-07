@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import List, Dict, Any
 
 from models.code_chunk import CodeChunk
+
 from models.project_structure import ProjectStructure
 
 logger = logging.getLogger(__name__)

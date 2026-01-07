@@ -8,8 +8,8 @@ import os
 import sys
 
 from config.config_loader import ConfigLoader
-from parsers.multilanguage_analyzer import MultilanguageAnalyzer
 from vector.code_vectorizer import CodeVectorizer
+from vector.tranformer_factory import TransformerFactory
 
 # Ajouter le chemin src pour les imports
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -46,12 +46,9 @@ def main():
 
         # Configuration logging
         setup_logging(config.get('logging', {}))
-
-        # Initialisation avec VOS analyseurs existants
-        analyzer = MultilanguageAnalyzer()
-
+        transformer = TransformerFactory.create_transformer(config)
         # Vectorisation
-        vectorizer = CodeVectorizer(config, analyzer)
+        vectorizer = CodeVectorizer(config, transformer)
 
         if args.search:
             # Mode recherche

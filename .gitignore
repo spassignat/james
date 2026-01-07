@@ -9,3 +9,4 @@
 /parsers/.venv/
 /vector/.venv/
 /ollama/llm/
+/output/

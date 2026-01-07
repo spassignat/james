@@ -1,5 +1,4 @@
 import re
-from typing import List
 
 from parsers.analysis_result import AnalysisResult
 from parsers.analyzer import Analyzer

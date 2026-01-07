@@ -12,7 +12,6 @@ class CodeChunk:
     """
     # Métadonnées générales
     language: str
-    chunk_type: np.ndarray[tuple[Any, ...], np.dtype[Any]]
     name: str
     # Contenu
     content: str

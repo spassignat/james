@@ -2,12 +2,11 @@
 import logging
 import re
 from typing import Dict, List, Any
-from datetime import datetime
 
-from parsers.analyzer import Analyzer
 from parsers.analysis_result import (
     AnalysisResult
 )
+from parsers.analyzer import Analyzer
 
 logger = logging.getLogger(__name__)
 

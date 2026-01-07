@@ -1,6 +1,8 @@
 # src/documentation/structure_adapter.py
-from typing import Dict, List, Any
+from typing import Dict, Any
+
 from ..models.project_structure import ProjectStructure
+
 
 class ProjectStructureAdapter:
     """Adapte votre ProjectStructure existante pour la génération de docs"""

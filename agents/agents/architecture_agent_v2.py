@@ -1,12 +1,11 @@
 from typing import List, Tuple, Dict, Any
+
 from overrides import overrides
 
 from agents.analysis_context import AnalysisContext
-from agents.base_agent import BaseAgent
 from agents.generic_agent import GenericAgent
 from models.project_structure import ProjectStructure
 from models.search_intent import SearchIntent
-from parsers.analyzer import Analyzer
 from parsers.lang.css_analyzer import CSSAnalyzer
 from vector.code_vectorizer import CodeVectorizer
 from vector.vector_store import VectorStore
